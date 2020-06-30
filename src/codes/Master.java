@@ -8,6 +8,8 @@ package codes;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.border.EtchedBorder;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -16,21 +18,33 @@ import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.sql.*;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
-
+import java.util.Vector;
 
 public class Master extends JFrame {
 
     /* 이미지 */
     private BufferedImage colorBackground = null;
 
-    private JTabbedPane menuPane;
+    static String getDate;
+
+    /* DB */
+    private Connection con = null;
+    private PreparedStatement ps = null;
+    private ResultSet rs = null;
+    private Statement stmt = null;
+
+    /* 프로파일 */
+    private JPanel profilePanel = new JPanel();
+    private JLabel showProfileLbl = new JLabel(Start.getname + "(" + Start.getalias + ")님의 계정");
+    private JButton logoutBtn = new JButton("로그아웃");
 
     /* 달력 */
-    private static final int CAL_WIDTH = 7;
-    private static final int CAL_HEIGHT = 6;
-    private int calDates[][] = new int[CAL_HEIGHT][CAL_WIDTH];
+    private static final int CAL_WIDTH = 7; // 캘린더의 너비
+    private static final int CAL_HEIGHT = 6; // 캘린더의 높이
+    private int calDates[][] = new int[CAL_HEIGHT][CAL_WIDTH]; // 캘린더를 담을 배열
     private int calYear;
     private int calMonth;
     private int calDayOfMon;
@@ -52,35 +66,82 @@ public class Master extends JFrame {
     private JButton weekDaysName[];
     private JButton dateBtns[][] = new JButton[6][7];
     listenforDateBtns lforDateBtns = new listenforDateBtns();
-    private JPanel infoPanel;
-    private JLabel infoClock;
-    private JLabel selectedDate;
     private final String WEEK_DAY_NAME[] = {"SUN", "MON", "TUE", "WED", "THR", "FRI", "SAT"};
 
     /* 수입 & 지출 */
-    JPanel tab1Panel;
-    JPanel addPanel;
+    JTabbedPane jTabbedPane1;
+    JPanel jTabbedPane1_daily;
+    JPanel jTabbedPane1_report_circle;
+    JPanel jTabbedPane1_report_stick;
+
+    JPanel dailyPanel;
+    JPanel circlePanel;
+    JPanel stickPanel;
     JButton addBtn = new JButton("추가");
-    JLabel getDateLbl = new JLabel("선택 날짜 받아오기");
+    JButton delBtn = new JButton("삭제");
+    JButton refreshCircle = new JButton("새로고침");
+    JButton refreshStick = new JButton("새로고침");
+    static JLabel getDailyDateLbl = new JLabel();
+    JLabel getCircleDateLbl = new JLabel();
+    JLabel getStickDateLbl = new JLabel();
 
-    JScrollPane incomePane;
-    JPanel expensePanel;
+    JPanel incomePanel;
+    JPanel incomeLblPanel;
+    static Vector incomeTable_Model_Vector;
+    static DefaultTableModel incomeTable_Model;
     JTable incomeTable;
-    String incomeHeader[] = {"이름", "분류", "메모", "결재 수단", "금액"};
-    JTable expenseTable;
+    JScrollPane incomePane;
 
+    Object[][] rowData = new Object[0][4];
+    String[] columnTitle = {"항목 이름", "결제 수단", "항목", "금액"};
+
+    JPanel expensePanel;
+    JPanel expenseLblPanel;
+    static Vector expenseTable_Model_Vector;
+    static DefaultTableModel expenseTable_Model;
+    JTable expenseTable;
+    JScrollPane expensePane;
+
+    JPanel sumPanel;
+    JPanel sumLblPanel;
+    JLabel incomeLbl = new JLabel("수입 :");
+    JLabel expenseLbl = new JLabel("지출 :");
+    JLabel totalLbl = new JLabel("전체 :");
+    static JLabel incomeSum = new JLabel("0");
+    static JLabel expenseSum = new JLabel("0");
+    static JLabel totalSum = new JLabel("0");
+
+    static int totalIncomeSum = 0;
+    static String stringIncomeSum;
+    static int intIncomeSum;
+
+    static int totalExpenseSum = 0;
+    static String stringExpenseSum;
+    static int intExpenseSum;
+
+    /* 메모 패널 */
+    JPanel memoPanel;
+    JTextArea memoArea = new JTextArea("");
+    JScrollPane memoScroll = new JScrollPane();
+    JLabel getMemoDateLbl = new JLabel();
+    JLabel memoLbl = new JLabel("메모");
+    JButton saveMemoBtn = new JButton("저장");
+    JButton delMemoBtn = new JButton("삭제");
+    JButton editMemoBtn = new JButton("수정");
+
+    String memoContents = "";
 
     /* 생성자 */
     public Master() {
         setTitle("꿀꿀이");
-        setSize(Main.SCREEN_WIDTH, Main.SCREEN_HEIGHT);
+        setSize(Main.BIG_SCREEN_WIDTH, Main.BIG_SCREEN_HEIGHT);
         setLocationRelativeTo(null);
         setResizable(false);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(null);
 
         JLayeredPane layeredPane = new JLayeredPane();
-        layeredPane.setBounds(0, 0, Main.SCREEN_WIDTH, Main.SCREEN_HEIGHT);
+        layeredPane.setBounds(0, 0, Main.BIG_SCREEN_WIDTH, Main.BIG_SCREEN_HEIGHT);
         layeredPane.setLayout(null);
 
         try {
@@ -91,46 +152,53 @@ public class Master extends JFrame {
         }
 
         MyPanel panel = new MyPanel();
-        panel.setBounds(0, 0, Main.SCREEN_WIDTH, Main.SCREEN_HEIGHT);
+        panel.setBounds(0, 0, Main.BIG_SCREEN_WIDTH, Main.BIG_SCREEN_HEIGHT);
 
-        // 탭 기능있는 패널 -> 사용 용도는 추후 정하기
-        menuPane = new JTabbedPane(JTabbedPane.BOTTOM);
-        menuPane.setBounds(650, 50, 600, 600);
-        //JPanel test2 = new JPanel();
+        showProfileLbl.setBounds(60, 15, 200, 30);
+        showProfileLbl.setFont(new Font("DX빨간우체통B", Font.BOLD, 16));
+        profilePanel.add(showProfileLbl);
 
-        tab1Panel = new JPanel();
-        addPanel = new JPanel();
-        addPanel.setLayout(null);
-        addPanel.setBackground(Color.DARK_GRAY);
-
-        addBtn.setFont(new Font("DX빨간우체통B", Font.BOLD, 12));
-        addBtn.setBounds(500, 20, 70, 35);
-        addBtn.addMouseListener(new MouseAdapter() {
+        logoutBtn.setBounds(1150, 15, 90, 30);
+        logoutBtn.setFont(new Font("DX빨간우체통B", Font.PLAIN, 12));
+        logoutBtn.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                new addExpenseIncome();
+                dispose();
+                new Start();
             }
         });
-        addPanel.add(addBtn);
+        profilePanel.add(logoutBtn);
 
-        getDateLbl.setFont(new Font("DX빨간우체통B", Font.BOLD, 18));
-        getDateLbl.setBounds(250, 20, 150, 35);
-        addPanel.add(getDateLbl);
+        profilePanel.setBounds(0, 0, 1280, 40);
+        profilePanel.setOpaque(false);
+        profilePanel.setLayout(null);
+        layeredPane.add(profilePanel);
 
-        incomeTable = new JTable(/*incomeHeader*/);
-        incomePane = new JScrollPane(incomeTable);
+        makeCalendar();
+        setToday();
+        showCal(); // 달력을 표시
+        focusToday();
+        daily(); // 수입 / 지출 표시
 
-        Dimension addPanelSize = addPanel.getPreferredSize();
-        addPanelSize.height = 80;
-        addPanel.setPreferredSize(addPanelSize);
-        tab1Panel.setLayout(new BorderLayout());
-        tab1Panel.add(addPanel, BorderLayout.NORTH);
-        tab1Panel.add(incomePane,BorderLayout.CENTER);
-        menuPane.addTab("수입/지출", tab1Panel);
-        //menuPane.addTab("test2", test2);
-        add(menuPane);
+        getIncomeData(Start.getname, getDate);
+        getExpenseData(Start.getname, getDate);
+        getIncomeSum(Start.getname, getDate);
+        getExpenseSum(Start.getname, getDate);
+        readMemo(Start.getname, getDate);
+        totalSum.setText(Integer.toString(Integer.parseInt(incomeSum.getText()) - Integer.parseInt(expenseSum.getText())));
 
-        // 달력 패널 만들
+        layeredPane.add(panel);
+        add(layeredPane);
+        setVisible(true);
+    }
+
+    class MyPanel extends JPanel {
+        public void paint(Graphics g) {
+            g.drawImage(colorBackground, 0, 0, null);
+        }
+    }
+
+    public void makeCalendar() {
         calTopPanel = new JPanel();
         calTopPanel.setOpaque(false);
 
@@ -229,18 +297,6 @@ public class Master extends JFrame {
         }
         calPanel.setLayout(new GridLayout(0, 7, 2, 2));
         calPanel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
-        setToday();
-        showCal(); // 달력을 표시
-
-
-        infoPanel = new JPanel();
-        infoPanel.setLayout(new BorderLayout());
-        infoClock = new JLabel("", SwingConstants.RIGHT);
-        infoClock.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        infoPanel.add(infoClock, BorderLayout.NORTH);
-        selectedDate = new JLabel("<Html><font size=3>" + (today.get(Calendar.MONTH) + 1) + "/" + today.get(Calendar.DAY_OF_MONTH) + "/" + today.get(Calendar.YEAR) + "&nbsp;(Today)</html>", SwingConstants.LEFT);
-        selectedDate.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 0));
-
 
         JPanel calendarPanel = new JPanel();
         calendarPanel.setBounds(50, 50, 550, 400);
@@ -252,18 +308,6 @@ public class Master extends JFrame {
         calendarPanel.add(calTopPanel, BorderLayout.NORTH);
         calendarPanel.add(calPanel, BorderLayout.CENTER);
         add(calendarPanel);
-        focusToday();
-
-
-        layeredPane.add(panel);
-        add(layeredPane);
-        setVisible(true);
-    }
-
-    class MyPanel extends JPanel {
-        public void paint(Graphics g) {
-            g.drawImage(colorBackground, 0, 0, null);
-        }
     }
 
     public void setToday() {
@@ -361,6 +405,21 @@ public class Master extends JFrame {
 
             currMMYYYYLbl.setText("<html><table width=100><tr><th><font size=5>" + ((calMonth + 1) < 10 ? "&nbsp;" : "") + (calMonth + 1) + " / " + calYear + "</th></tr></table></html>");
             showCal();
+            getCircleDateLbl.setText((calMonth + 1) + "/" + calYear);
+            getStickDateLbl.setText((calMonth + 1) + "/" + calYear);
+            getMemoDateLbl.setText((calMonth + 1) + "/" + calDayOfMon + "/" + calYear);
+            getDailyDateLbl.setText((calMonth + 1) + "/" + calDayOfMon + "/" + calYear);
+            getDate = (calYear + "/" + (calMonth + 1) + "/" + calDayOfMon);
+
+            getIncomeData(Start.getname, getDate);
+            getExpenseData(Start.getname, getDate);
+
+            getIncomeSum(Start.getname, getDate);
+            getExpenseSum(Start.getname, getDate);
+
+            readMemo(Start.getname, getDate);
+
+            totalSum.setText(Integer.toString(Integer.parseInt(incomeSum.getText()) - Integer.parseInt(expenseSum.getText())));
         }
     }
 
@@ -379,19 +438,28 @@ public class Master extends JFrame {
             if (!(k == 0 && l == 0)) calDayOfMon = calDates[k][l];
 
             cal = new GregorianCalendar(calYear, calMonth, calDayOfMon);
+            getDailyDateLbl.setText((calMonth + 1) + "/" + calDayOfMon + "/" + calYear);
+            getMemoDateLbl.setText((calMonth + 1) + "/" + calDayOfMon + "/" + calYear);
+            getDate = (calYear + "/" + (calMonth + 1) + "/" + calDayOfMon);
 
-            String dDayString = new String();
-            int dDay = ((int) ((cal.getTimeInMillis() - today.getTimeInMillis()) / 1000 / 60 / 60 / 24));
-            if (dDay == 0 && (cal.get(Calendar.YEAR) == today.get(Calendar.YEAR))
-                    && (cal.get(Calendar.MONTH) == today.get(Calendar.MONTH))
-                    && (cal.get(Calendar.DAY_OF_MONTH) == today.get(Calendar.DAY_OF_MONTH))) dDayString = "Today";
-            else if (dDay >= 0) dDayString = "D-" + (dDay + 1);
-            else if (dDay < 0) dDayString = "D+" + (dDay) * (-1);
+            getIncomeData(Start.getname, getDate);
+            getExpenseData(Start.getname, getDate);
 
-            selectedDate.setText("<Html><font size=3>" + (calMonth + 1) + "/" + calDayOfMon + "/" + calYear + "&nbsp;(" + dDayString + ")</html>");
+            getIncomeSum(Start.getname, getDate);
+            getExpenseSum(Start.getname, getDate);
 
+            readMemo(Start.getname, getDate);
+
+            totalSum.setText(Integer.toString(Integer.parseInt(incomeSum.getText()) - Integer.parseInt(expenseSum.getText())));
         }
     }
+
+//    private class listenForDelBtn implements ActionListener {
+//        public void actionPerformed(ActionEvent e) {
+//
+//        }
+//    }
+
     /*
         private class ThreadConrol extends Thread{
             public void run(){
@@ -432,7 +500,575 @@ public class Master extends JFrame {
                 }
             }
         }*/
+
+    // 가계부를 위한 탭 메뉴 정의
+    public void daily() {
+        jTabbedPane1 = new JTabbedPane(JTabbedPane.BOTTOM);
+        jTabbedPane1_daily = new JPanel();
+        jTabbedPane1_daily.setLayout(null);
+        jTabbedPane1_daily.setBackground(jTabbedPane1.getBackground());
+
+        jTabbedPane1_report_circle = new JPanel();
+        jTabbedPane1_report_circle.setLayout(null);
+        jTabbedPane1_report_circle.setBackground(jTabbedPane1.getBackground());
+
+        jTabbedPane1_report_stick = new JPanel();
+        jTabbedPane1_report_stick.setLayout(null);
+        jTabbedPane1_report_stick.setBackground(jTabbedPane1.getBackground());
+
+        jTabbedPane1.add("수입 / 지출", jTabbedPane1_daily);
+        jTabbedPane1.add("원형 그래프(월)", jTabbedPane1_report_circle);
+        jTabbedPane1.add("막대 그래프(월)", jTabbedPane1_report_stick);
+
+
+        jTabbedPane1.setBounds(650, 50, 600, 600);
+        add(jTabbedPane1);
+
+        daily_date();
+        daily_income();
+        daily_expense();
+        daily_total();
+        daily_memo();
+    }
+
+    // 날짜 표시 및 추가 버튼을 위한 패널
+    public void daily_date() {
+        dailyPanel = new JPanel();
+        dailyPanel.setLayout(null);
+        dailyPanel.setBorder(new EtchedBorder());
+        dailyPanel.setBounds(0, 0, 600, 80);
+        dailyPanel.setBackground(new Color(204, 204, 255));
+
+        circlePanel = new JPanel();
+        circlePanel.setLayout(null);
+        circlePanel.setBorder(new EtchedBorder());
+        circlePanel.setBounds(0, 0, 600, 80);
+        circlePanel.setBackground(new Color(204, 204, 255));
+
+        stickPanel = new JPanel();
+        stickPanel.setLayout(null);
+        stickPanel.setBorder(new EtchedBorder());
+        stickPanel.setBounds(0, 0, 600, 80);
+        stickPanel.setBackground(new Color(204, 204, 255));
+
+        jTabbedPane1_daily.add(dailyPanel);
+        jTabbedPane1_report_circle.add(circlePanel);
+        jTabbedPane1_report_stick.add(stickPanel);
+
+        getDailyDateLbl.setText((today.get(Calendar.MONTH) + 1) + "/" + today.get(Calendar.DAY_OF_MONTH) + "/" + today.get(Calendar.YEAR));
+        getDailyDateLbl.setFont(new Font("DX빨간우체통B", Font.BOLD, 18));
+        getDailyDateLbl.setBounds(250, 20, 150, 35);
+        dailyPanel.add(getDailyDateLbl);
+
+        getDate = (today.get(Calendar.YEAR) + "/" + (today.get(Calendar.MONTH) + 1) + "/" + today.get(Calendar.DAY_OF_MONTH));
+
+        getCircleDateLbl.setText((today.get(Calendar.MONTH) + 1) + "/" + today.get(Calendar.YEAR));
+        getCircleDateLbl.setFont(new Font("DX빨간우체통B", Font.BOLD, 18));
+        getCircleDateLbl.setBounds(270, 20, 150, 35);
+        circlePanel.add(getCircleDateLbl);
+
+        getStickDateLbl.setText((today.get(Calendar.MONTH) + 1) + "/" + today.get(Calendar.YEAR));
+        getStickDateLbl.setFont(new Font("DX빨간우체통B", Font.BOLD, 18));
+        getStickDateLbl.setBounds(270, 20, 150, 35);
+        stickPanel.add(getStickDateLbl);
+
+        addBtn.setFont(new Font("DX빨간우체통B", Font.BOLD, 12));
+        addBtn.setBounds(500, 20, 70, 35);
+        addBtn.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                new addExpenseIncome();
+            }
+        });
+        dailyPanel.add(addBtn);
+
+        delBtn.setFont(new Font("DX빨간우체통B", Font.BOLD, 12));
+        delBtn.setBounds(10, 20, 70, 35);
+        delBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int incomeTableSelected = incomeTable.getSelectedRow();
+                int expenseTableSelected = expenseTable.getSelectedRow();
+
+                if (incomeTableSelected >= 0) {
+                    incomeTable_Model = (DefaultTableModel) incomeTable.getModel();
+                    DefaultTableModel deleteIncomeTable = (DefaultTableModel) incomeTable.getModel();
+                    int incomeRow = incomeTable.getSelectedRow();
+                    // DB 연결 시도
+                    try {
+                        Class.forName("com.mysql.jdbc.Driver"); // 1. 드라이버 로딩
+                        con = DriverManager.getConnection("jdbc:mysql://localhost:3306/Term_Project?serverTimezone=Asia/Seoul&useSSL=false", "root", "dhgusgh8520"); // 2. 드라이버 연결
+                    } catch (Exception f) {
+                        f.printStackTrace();
+                    }
+
+                    String removeIncomeTableRow = "DELETE FROM accountbook WHERE itemname = ? AND cardcash = ? AND itemtype = ? AND amount = ?";
+                    try {
+                        ps = con.prepareStatement(removeIncomeTableRow);
+                        ps.setString(1, (String) deleteIncomeTable.getValueAt(incomeRow, 0));
+                        ps.setString(2, (String) deleteIncomeTable.getValueAt(incomeRow, 1));
+                        ps.setString(3, (String) deleteIncomeTable.getValueAt(incomeRow, 2));
+                        ps.setString(4, (String) deleteIncomeTable.getValueAt(incomeRow, 3));
+
+                        int execute = ps.executeUpdate();
+                    } catch (Exception f) {
+                        f.printStackTrace();
+                    }
+                    incomeTable_Model.removeRow(incomeTableSelected);
+
+
+                } else if (expenseTableSelected >= 0) {
+                    expenseTable_Model = (DefaultTableModel) expenseTable.getModel();
+                    expenseTable_Model.removeRow(expenseTableSelected);
+                }
+                String[] yesnoBtn = {"예", "아니요"};
+                JOptionPane.showOptionDialog(null, "삭제하면 복구가 불가능합니다. 정말 삭제하시겠습니까?", "CONFIRM", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE,
+                        null, yesnoBtn, "아니요");
+                String deleteTableRowFromDB = "DELETE FROM accountbook WHERE inputdate = '" + getDate + "'";
+                updateDB(deleteTableRowFromDB);
+            }
+        });
+        dailyPanel.add(delBtn);
+
+        refreshCircle.setFont(new Font("DX빨간우체통B", Font.BOLD, 12));
+        refreshCircle.setBounds(500, 20, 70, 35);
+        circlePanel.add(refreshCircle);
+
+        refreshStick.setFont(new Font("DX빨간우체통B", Font.BOLD, 12));
+        refreshStick.setBounds(500, 20, 70, 35);
+        stickPanel.add(refreshStick);
+    }
+
+    // 수입을 위한 패널
+    public void daily_income() {
+        incomePanel = new JPanel();
+        incomePanel.setLayout(null);
+        incomePanel.setBorder(new EtchedBorder());
+        incomePanel.setBackground((new Color(204, 204, 255)));
+        incomePanel.setBounds(2, 80, 598, 198);
+        jTabbedPane1_daily.add(incomePanel);
+
+        incomeLblPanel = new JPanel();
+        incomeLblPanel.setLayout(null);
+        incomeLblPanel.setBackground((new Color(204, 204, 255)));
+        JLabel incomeLbl1 = new JLabel("수");
+        JLabel incomeLbl2 = new JLabel("입");
+        incomeLbl1.setFont(new Font("DX빨간우체통B", Font.BOLD, 14));
+        incomeLbl1.setBounds(7, 70, 14, 14);
+        incomeLbl2.setFont(new Font("DX빨간우체통B", Font.BOLD, 14));
+        incomeLbl2.setBounds(7, 100, 14, 14);
+        incomeLblPanel.add(incomeLbl1);
+        incomeLblPanel.add(incomeLbl2);
+        incomeLblPanel.setBorder(new EtchedBorder());
+        incomeLblPanel.setBounds(0, 0, 27, 198);
+        incomePanel.add(incomeLblPanel);
+
+        incomeTable_Model = new DefaultTableModel(rowData, columnTitle) {
+            public boolean isCellEditable(int row, int column) {
+                if (column >= 0) {
+                    return false;
+                } else {
+                    return true;
+                }
+            }
+        };
+        incomeTable = new JTable(incomeTable_Model);
+        incomePane = new JScrollPane(incomeTable);
+        incomePane.setBounds(27, 0, 549, 197);
+        incomePanel.add(incomePane);
+
+
+    }
+
+    // 지출을 위한 패널
+    public void daily_expense() {
+        expensePanel = new JPanel();
+        expensePanel.setLayout(null);
+        expensePanel.setBorder(new EtchedBorder());
+        expensePanel.setBackground((new Color(204, 204, 255)));
+        expensePanel.setBounds(2, 279, 598, 198);
+        jTabbedPane1_daily.add(expensePanel);
+
+        expenseLblPanel = new JPanel();
+        expenseLblPanel.setLayout(null);
+        expenseLblPanel.setBackground((new Color(204, 204, 255)));
+        JLabel expenseLbl1 = new JLabel("지");
+        JLabel expenseLbl2 = new JLabel("출");
+        expenseLbl1.setFont(new Font("DX빨간우체통B", Font.BOLD, 14));
+        expenseLbl1.setBounds(7, 70, 14, 14);
+        expenseLbl2.setFont(new Font("DX빨간우체통B", Font.BOLD, 14));
+        expenseLbl2.setBounds(7, 100, 14, 14);
+        expenseLblPanel.add(expenseLbl1);
+        expenseLblPanel.add(expenseLbl2);
+        expenseLblPanel.setBorder(new EtchedBorder());
+        expenseLblPanel.setBounds(0, 0, 27, 198);
+        expensePanel.add(expenseLblPanel);
+
+        expenseTable_Model = new DefaultTableModel(rowData, columnTitle) {
+            public boolean isCellEditable(int row, int column) {
+                if (column >= 0) {
+                    return false;
+                } else {
+                    return true;
+                }
+            }
+        };
+        expenseTable = new JTable(expenseTable_Model);
+        expensePane = new JScrollPane(expenseTable);
+        expensePane.setBounds(27, 0, 549, 197);
+        expensePanel.add(expensePane);
+    }
+
+    // 수입합, 지출합, 전체합 보여주는 패널
+    public void daily_total() {
+        sumPanel = new JPanel();
+        sumPanel.setLayout(null);
+        sumPanel.setBorder(new EtchedBorder());
+        sumPanel.setBackground((new Color(204, 204, 255)));
+        sumPanel.setBounds(2, 478, 598, 100);
+        jTabbedPane1_daily.add(sumPanel);
+
+        sumLblPanel = new JPanel();
+        sumLblPanel.setLayout(null);
+        sumLblPanel.setBackground((new Color(204, 204, 255)));
+        JLabel sumLbl1 = new JLabel("합");
+        JLabel sumLbl2 = new JLabel("계");
+        sumLbl1.setFont(new Font("DX빨간우체통B", Font.BOLD, 14));
+        sumLbl1.setBounds(7, 15, 14, 14);
+        sumLbl2.setFont(new Font("DX빨간우체통B", Font.BOLD, 14));
+        sumLbl2.setBounds(7, 40, 14, 14);
+        sumLblPanel.add(sumLbl1);
+        sumLblPanel.add(sumLbl2);
+        sumLblPanel.setBorder(new EtchedBorder());
+        sumLblPanel.setBounds(0, 0, 27, 75);
+        sumPanel.add(sumLblPanel);
+
+        incomeLbl.setBounds(60, 20, 50, 30);
+        incomeLbl.setFont(new Font("DX빨간우체통B", Font.BOLD, 15));
+        sumPanel.add(incomeLbl);
+
+        incomeSum.setBounds(110, 20, 100, 30);
+        incomeSum.setFont(new Font("DX빨간우체통B", Font.BOLD, 15));
+        sumPanel.add(incomeSum);
+
+        expenseLbl.setBounds(240, 20, 50, 30);
+        expenseLbl.setFont(new Font("DX빨간우체통B", Font.BOLD, 15));
+        sumPanel.add(expenseLbl);
+
+        expenseSum.setBounds(290, 20, 100, 30);
+        expenseSum.setFont(new Font("DX빨간우체통B", Font.BOLD, 15));
+        sumPanel.add(expenseSum);
+
+        totalLbl.setBounds(410, 20, 50, 30);
+        totalLbl.setFont(new Font("DX빨간우체통B", Font.BOLD, 15));
+        sumPanel.add(totalLbl);
+
+        totalSum.setBounds(460, 20, 100, 30);
+        totalSum.setFont(new Font("DX빨간우체통B", Font.BOLD, 15));
+        sumPanel.add(totalSum);
+    }
+
+    // 메모를 따로 볼 수 있게 해주는 패널
+    public void daily_memo() {
+        memoPanel = new JPanel();
+        memoPanel.setLayout(null);
+        memoPanel.setBorder(new EtchedBorder());
+        memoPanel.setBounds(50, 460, 550, 160);
+        memoPanel.setBackground(new Color(204, 204, 255));
+        add(memoPanel);
+
+        memoArea.setLineWrap(true);
+        memoArea.setWrapStyleWord(true);
+        memoArea.setEditable(false);
+        memoArea.setBackground(new Color(230, 230, 230));
+        memoScroll = new JScrollPane(memoArea, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        memoScroll.setBounds(10, 40, 530, 110);
+        memoPanel.add(memoScroll);
+
+        getMemoDateLbl.setText((today.get(Calendar.MONTH) + 1) + "/" + today.get(Calendar.DAY_OF_MONTH) + "/" + today.get(Calendar.YEAR));
+        getMemoDateLbl.setFont(new Font("DX빨간우체통B", Font.BOLD, 14));
+        getMemoDateLbl.setBounds(20, 6, 150, 35);
+        memoPanel.add(getMemoDateLbl);
+
+        memoLbl.setFont(new Font("DX빨간우체통B", Font.BOLD, 14));
+        memoLbl.setBounds(250, 6, 150, 35);
+        memoPanel.add(memoLbl);
+
+        // 저장 버튼
+        saveMemoBtn.setEnabled(false);
+        saveMemoBtn.setFont(new Font("DX빨간우체통B", Font.BOLD, 12));
+        saveMemoBtn.setBounds(420, 7, 60, 30);
+        saveMemoBtn.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                // 저장 이벤트
+                if (checkMemo(Start.getname, getDate).equals("")) {
+                    if (memoArea.getText().equals("")) {
+
+                    } else {
+                        String addMemoToDB = "INSERT INTO memos(username,inputdate,content)" +
+                                "VALUES('" + Start.getname + "','" + getDate + "','" + memoArea.getText() + "')";
+                        updateDB(addMemoToDB);
+                    }
+                } else {
+                    String updateMemo = "UPDATE memos set content = '" + memoArea.getText() + "' WHERE username= '" + Start.getname + "'  AND inputdate= '" + getDate + "' ";
+                    updateDB(updateMemo);
+                }
+                memoArea.setBackground(new Color(230, 230, 230));
+                memoArea.setEditable(false);
+                editMemoBtn.setEnabled(true);
+                saveMemoBtn.setEnabled(false);
+                delMemoBtn.setEnabled(false);
+            }
+        });
+        memoPanel.add(saveMemoBtn);
+
+        // 삭제 버튼
+        delMemoBtn.setEnabled(false);
+        delMemoBtn.setFont(new Font("DX빨간우체통B", Font.BOLD, 12));
+        delMemoBtn.setBounds(480, 7, 60, 30);
+        delMemoBtn.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                // 삭제 이벤트
+                String[] yesnoBtn = {"예", "아니요"};
+                JOptionPane.showOptionDialog(null, "삭제하면 복구가 불가능합니다. 정말 삭제하시겠습니까?", "CONFIRM", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE,
+                        null, yesnoBtn, "아니요");
+                String deleteMemoFromDB = "DELETE FROM memos WHERE inputdate = '" + getDate + "'";
+                updateDB(deleteMemoFromDB);
+                memoArea.setText("");
+            }
+        });
+        memoPanel.add(delMemoBtn);
+
+        //수정 버튼
+        editMemoBtn.setFont(new Font("DX빨간우체통B", Font.BOLD, 12));
+        editMemoBtn.setBounds(360, 7, 60, 30);
+        editMemoBtn.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                // 삭제 이벤트
+                if (memoArea.getText().equals("")) {
+                    delMemoBtn.setEnabled(false);
+                    saveMemoBtn.setEnabled(true);
+                } else {
+                    saveMemoBtn.setEnabled(true);
+                    delMemoBtn.setEnabled(true);
+                }
+                memoArea.setBackground(Color.WHITE);
+                memoArea.setEditable(true);
+                editMemoBtn.setEnabled(false);
+            }
+        });
+        memoPanel.add(editMemoBtn);
+
+
+    }
+
+    public void getIncomeData(String name, String date) {
+        // DB 연결 시도
+        try {
+            Class.forName("com.mysql.jdbc.Driver"); // 1. 드라이버 로딩
+            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/Term_Project?serverTimezone=Asia/Seoul&useSSL=false", "root", "dhgusgh8520"); // 2. 드라이버 연결
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        String SQL = "SELECT * FROM accountbook WHERE username=? AND incomeexpense = '수입' AND inputdate=?";
+        try {
+            incomeTable_Model.setNumRows(0);
+            ps = con.prepareStatement(SQL);
+            ps.setString(1, name);
+            ps.setString(2, date);
+            rs = ps.executeQuery();
+            while (rs.next()) {
+                String itemname = rs.getString("itemname");
+                String cardcash = rs.getString("cardcash");
+                String itemtype = rs.getString("itemtype");
+                String amount = rs.getString("amount");
+
+                incomeTable_Model_Vector = new Vector();
+                incomeTable_Model_Vector.add(itemname);
+                incomeTable_Model_Vector.add(cardcash);
+                incomeTable_Model_Vector.add(itemtype);
+                incomeTable_Model_Vector.add(amount);
+                incomeTable_Model.addRow(incomeTable_Model_Vector);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void getExpenseData(String name, String date) {
+        // DB 연결 시도
+        try {
+            Class.forName("com.mysql.jdbc.Driver"); // 1. 드라이버 로딩
+            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/Term_Project?serverTimezone=Asia/Seoul&useSSL=false", "root", "dhgusgh8520"); // 2. 드라이버 연결
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        String SQL = "SELECT * FROM accountbook WHERE username=? AND inputdate = ? AND incomeexpense = '지출'";
+        try {
+            expenseTable_Model.setNumRows(0);
+            ps = con.prepareStatement(SQL);
+            ps.setString(1, name);
+            ps.setString(2, date);
+            rs = ps.executeQuery();
+            while (rs.next()) {
+                String itemname = rs.getString("itemname");
+                String cardcash = rs.getString("cardcash");
+                String itemtype = rs.getString("itemtype");
+                String amount = rs.getString("amount");
+
+                expenseTable_Model_Vector = new Vector();
+                expenseTable_Model_Vector.add(itemname);
+                expenseTable_Model_Vector.add(cardcash);
+                expenseTable_Model_Vector.add(itemtype);
+                expenseTable_Model_Vector.add(amount);
+                expenseTable_Model.addRow(expenseTable_Model_Vector);
+
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void getIncomeSum(String name, String date) {
+
+        // DB 연결 시도
+        try {
+            Class.forName("com.mysql.jdbc.Driver"); // 1. 드라이버 로딩
+            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/Term_Project?serverTimezone=Asia/Seoul&useSSL=false", "root", "dhgusgh8520"); // 2. 드라이버 연결
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        String SQL = "SELECT * FROM accountbook WHERE username=? AND incomeexpense = '수입' AND inputdate=?";
+        try {
+            ps = con.prepareStatement(SQL);
+            ps.setString(1, name);
+            ps.setString(2, date);
+            rs = ps.executeQuery();
+            if (incomeTable_Model.getRowCount() == 0) {
+                incomeSum.setText("0");
+            }
+            while (rs.next()) {
+                stringIncomeSum = rs.getString("amount");
+                intIncomeSum = Integer.parseInt(stringIncomeSum);
+                totalIncomeSum += intIncomeSum;
+                incomeSum.setText(Integer.toString(totalIncomeSum));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        totalIncomeSum = 0;
+    }
+
+    public void getExpenseSum(String name, String date) {
+        // DB 연결 시도
+        try {
+            Class.forName("com.mysql.jdbc.Driver"); // 1. 드라이버 로딩
+            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/Term_Project?serverTimezone=Asia/Seoul&useSSL=false", "root", "dhgusgh8520"); // 2. 드라이버 연결
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        String SQL = "SELECT * FROM accountbook WHERE username=? AND incomeexpense = '지출' AND inputdate=?";
+        try {
+            ps = con.prepareStatement(SQL);
+            ps.setString(1, name);
+            ps.setString(2, date);
+            rs = ps.executeQuery();
+            if (expenseTable_Model.getRowCount() == 0) {
+                expenseSum.setText("0");
+            }
+            while (rs.next()) {
+                stringExpenseSum = rs.getString("amount");
+                intExpenseSum = Integer.parseInt(stringExpenseSum);
+                totalExpenseSum += intExpenseSum;
+                expenseSum.setText(Integer.toString(totalExpenseSum));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        totalExpenseSum = 0;
+    }
+
+    public void readMemo(String name, String date) {
+        // DB 연결 시도
+        try {
+            Class.forName("com.mysql.jdbc.Driver"); // 1. 드라이버 로딩
+            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/Term_Project?serverTimezone=Asia/Seoul&useSSL=false", "root", "dhgusgh8520"); // 2. 드라이버 연결
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        String SQL = "SELECT * FROM memos WHERE username=? AND inputdate=?";
+        try {
+            memoArea.setText("");
+            ps = con.prepareStatement(SQL);
+            ps.setString(1, name);
+            ps.setString(2, date);
+            rs = ps.executeQuery();
+
+            while (rs.next()) {
+                String memoContents = rs.getString("content");
+                memoArea.setText(memoContents);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public String checkMemo(String name, String date) {
+        // DB 연결 시도
+        try {
+            Class.forName("com.mysql.jdbc.Driver"); // 1. 드라이버 로딩
+            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/Term_Project?serverTimezone=Asia/Seoul&useSSL=false", "root", "dhgusgh8520"); // 2. 드라이버 연결
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        String SQL = "SELECT * FROM memos WHERE username=? AND inputdate=?";
+
+        try {
+            //memoArea.setText("");
+            ps = con.prepareStatement(SQL);
+            ps.setString(1, name);
+            ps.setString(2, date);
+            rs = ps.executeQuery();
+
+            while (rs.next()) {
+                memoContents = rs.getString("content");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return memoContents;
+    }
+
+    public void updateDB(String addToDB) {
+        // DB 연결 시도
+        try {
+            Class.forName("com.mysql.jdbc.Driver"); // 1. 드라이버 로딩
+            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/Term_Project?serverTimezone=Asia/Seoul&useSSL=false", "root", "dhgusgh8520"); // 2. 드라이버 연결
+            stmt = con.createStatement();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        try {
+            stmt.executeUpdate(addToDB);
+        } catch (Exception e) {
+            System.out.println("update error : " + e);
+        }
+    }
+
 }
+
+
 
 
 

@@ -27,10 +27,6 @@ import java.util.Arrays;
 
 public class Login extends JFrame {
 
-    /* 회원가입창 사이즈 */
-    private static final int HEIGHT = 600;
-    private static final int WIDTH = 400;
-
     /* JLabel X 값 */
     private static final int FIRST_X = 30;
 
@@ -82,14 +78,14 @@ public class Login extends JFrame {
     // 생성자
     public Login() {
         setTitle("회원가입 하기");
-        setSize(WIDTH, HEIGHT);
+        setSize(Main.SMALL_SCREEN_WIDTH, Main.SMALL_SCREEN_HEIGHT);
         setLocationRelativeTo(null);
         setResizable(false);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLayout(null);
 
         JLayeredPane layeredPane = new JLayeredPane();
-        layeredPane.setBounds(0, 0, WIDTH, HEIGHT);
+        layeredPane.setBounds(0, 0, Main.SMALL_SCREEN_WIDTH, Main.SMALL_SCREEN_HEIGHT);
         layeredPane.setLayout(null);
 
         try {
@@ -100,7 +96,7 @@ public class Login extends JFrame {
         }
 
         MyPanel panel = new MyPanel();
-        panel.setBounds(0, 0, WIDTH, HEIGHT);
+        panel.setBounds(0, 0, Main.SMALL_SCREEN_WIDTH, Main.SMALL_SCREEN_HEIGHT);
 
         // 이름 레이블
         nameLbl.setBounds(FIRST_X, 50, 80, 30);
@@ -374,14 +370,6 @@ public class Login extends JFrame {
                     String addToDB = "INSERT INTO members(name,id,password,birthday,nickname)" +
                             "VALUES('" + nameTxt.getText() + "','" + idTxt.getText() + "','" + passString + "','" + birthday + "', '" + nicknameTxt.getText() + "')";
                     updateDB(addToDB);
-                    nameTxt.setText("");
-                    idTxt.setText("");
-                    passTxt.setText("");
-                    passTxt_Check.setText("");
-                    yearTxt.setText("");
-                    monthTxt.setText("");
-                    dayTxt.setText("");
-                    nicknameTxt.setText("");
                     passCount = 0;
                     idCount = 0;
                     dispose();

@@ -7,15 +7,17 @@ package codes;
 
 public class Main {
 
-    public static final int SCREEN_HEIGHT = 720; // 화면 고정 높이
-    public static final int SCREEN_WIDTH = 1280; // 화면 고정 넓이
+    /* 큰화면 : 1280 * 720 // 작은 화면 : 600 * 400 */
+    public static final int BIG_SCREEN_HEIGHT = 720; // 큰 화면 고정 높이
+    public static final int BIG_SCREEN_WIDTH = 1280; // 큰 화면 고정 넓이
+    public static final int SMALL_SCREEN_HEIGHT = 600; // 큰 화면 고정 높이
+    public static final int SMALL_SCREEN_WIDTH = 400; // 큰 화면 고정 넓이
 
     public static void main(String[] args) {
-        //new Start();
+        new Start();
         //new Login();
         //new Master();
-        new addExpenseIncome();
+        //new addExpenseIncome();
     }
 
 }
-
