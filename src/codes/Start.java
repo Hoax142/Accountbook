@@ -160,7 +160,7 @@ public class Start extends JFrame {
                 int result = checkLogin(loginTxt.getText(), passString);
                 // 로그인 성공
                 if (result == 1) {
-                    JOptionPane.showMessageDialog(null, "로그인 성공", "MESSAGE", JOptionPane.PLAIN_MESSAGE);
+                    JOptionPane.showMessageDialog(null, "로그인 성공", "MESSAGE", JOptionPane.DEFAULT_OPTION);
                     getName(loginTxt.getText());
                     getAlias(loginTxt.getText());
                     // 가계부 메인
@@ -216,7 +216,7 @@ public class Start extends JFrame {
         // DB 연결 시도
         try {
             Class.forName("com.mysql.jdbc.Driver"); // 1. 드라이버 로딩
-            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/Term_Project?serverTimezone=Asia/Seoul&useSSL=false", "root", "dhgusgh8520"); // 2. 드라이버 연결
+            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/Term_Project?serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true&useSSL=false", "root", "dhgusgh8520"); // 2. 드라이버 연결
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -245,7 +245,7 @@ public class Start extends JFrame {
         // DB 연결 시도
         try {
             Class.forName("com.mysql.jdbc.Driver"); // 1. 드라이버 로딩
-            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/Term_Project?serverTimezone=Asia/Seoul&useSSL=false", "root", "dhgusgh8520"); // 2. 드라이버 연결
+            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/Term_Project?serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true&useSSL=false", "root", "dhgusgh8520"); // 2. 드라이버 연결
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -268,7 +268,7 @@ public class Start extends JFrame {
         // DB 연결 시도
         try {
             Class.forName("com.mysql.jdbc.Driver"); // 1. 드라이버 로딩
-            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/Term_Project?serverTimezone=Asia/Seoul&useSSL=false", "root", "dhgusgh8520"); // 2. 드라이버 연결
+            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/Term_Project?serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true&useSSL=false", "root", "dhgusgh8520"); // 2. 드라이버 연결
         } catch (Exception e) {
             e.printStackTrace();
         }

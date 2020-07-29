@@ -10,6 +10,7 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.EtchedBorder;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -93,7 +94,7 @@ public class Master extends JFrame {
     JScrollPane incomePane;
 
     Object[][] rowData = new Object[0][4];
-    String[] columnTitle = {"항목 이름", "결제 수단", "항목", "금액"};
+    String[] columnTitle = {"시간", "항목 이름", "결제 수단", "항목", "금액"};
 
     JPanel expensePanel;
     JPanel expenseLblPanel;
@@ -343,7 +344,7 @@ public class Master extends JFrame {
         else return 0;
     }
 
-    public void moveMonth(int mon) { // ÇöÀç´Þ·Î ºÎÅÍ n´Þ ÀüÈÄ¸¦ ¹Þ¾Æ ´Þ·Â ¹è¿­À» ¸¸µå´Â ÇÔ¼ö(1³âÀº +12, -12´Þ·Î ÀÌµ¿ °¡´É)
+    public void moveMonth(int mon) {
         calMonth += mon;
         if (calMonth > 11) while (calMonth > 11) {
             calYear++;
@@ -453,12 +454,6 @@ public class Master extends JFrame {
             totalSum.setText(Integer.toString(Integer.parseInt(incomeSum.getText()) - Integer.parseInt(expenseSum.getText())));
         }
     }
-
-//    private class listenForDelBtn implements ActionListener {
-//        public void actionPerformed(ActionEvent e) {
-//
-//        }
-//    }
 
     /*
         private class ThreadConrol extends Thread{
@@ -589,45 +584,52 @@ public class Master extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 int incomeTableSelected = incomeTable.getSelectedRow();
                 int expenseTableSelected = expenseTable.getSelectedRow();
-
+//                for (int i = 0; i < incomeTable.getColumnCount(); i++) {
+//                    System.out.print(incomeTable.getModel().getValueAt(incomeTableSelected, i) + "\t");
+//                }
                 if (incomeTableSelected >= 0) {
-                    incomeTable_Model = (DefaultTableModel) incomeTable.getModel();
-                    DefaultTableModel deleteIncomeTable = (DefaultTableModel) incomeTable.getModel();
-                    int incomeRow = incomeTable.getSelectedRow();
-                    // DB 연결 시도
-                    try {
-                        Class.forName("com.mysql.jdbc.Driver"); // 1. 드라이버 로딩
-                        con = DriverManager.getConnection("jdbc:mysql://localhost:3306/Term_Project?serverTimezone=Asia/Seoul&useSSL=false", "root", "dhgusgh8520"); // 2. 드라이버 연결
-                    } catch (Exception f) {
-                        f.printStackTrace();
+                    Object incomeTime = incomeTable.getModel().getValueAt(incomeTableSelected, 0);
+                    String incomeTimeString = incomeTime.toString();
+                    String[] yesnoBtn = {"예", "아니요"};
+                    int deleteResult = JOptionPane.showOptionDialog(null, "삭제하면 복구가 불가능합니다. 정말 삭제하시겠습니까?", "CONFIRM", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE,
+                            null, yesnoBtn, "아니요");
+                    if (deleteResult == JOptionPane.YES_OPTION) {
+                        incomeTable_Model.removeRow(incomeTableSelected);
+                        try {
+                            Class.forName("com.mysql.jdbc.Driver"); // 1. 드라이버 로딩
+                            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/Term_Project?serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true&useSSL=false", "root", "dhgusgh8520"); // 2. 드라이버 연결
+                        } catch (Exception f) {
+                            f.printStackTrace();
+                        }
+                        String deleteTableRowFromDB = "DELETE FROM accountbook WHERE inputtime = '" + incomeTimeString + "' AND username = '" + Start.getname + "'";
+                        updateDB(deleteTableRowFromDB);
+                    } else {
+                        return;
                     }
-
-                    String removeIncomeTableRow = "DELETE FROM accountbook WHERE itemname = ? AND cardcash = ? AND itemtype = ? AND amount = ?";
-                    try {
-                        ps = con.prepareStatement(removeIncomeTableRow);
-                        ps.setString(1, (String) deleteIncomeTable.getValueAt(incomeRow, 0));
-                        ps.setString(2, (String) deleteIncomeTable.getValueAt(incomeRow, 1));
-                        ps.setString(3, (String) deleteIncomeTable.getValueAt(incomeRow, 2));
-                        ps.setString(4, (String) deleteIncomeTable.getValueAt(incomeRow, 3));
-
-                        int execute = ps.executeUpdate();
-                    } catch (Exception f) {
-                        f.printStackTrace();
-                    }
-                    incomeTable_Model.removeRow(incomeTableSelected);
-
-
                 } else if (expenseTableSelected >= 0) {
-                    expenseTable_Model = (DefaultTableModel) expenseTable.getModel();
-                    expenseTable_Model.removeRow(expenseTableSelected);
+                    Object expenseTime = expenseTable.getModel().getValueAt(expenseTableSelected, 0);
+                    String expenseTimeString = expenseTime.toString();
+                    String[] yesnoBtn = {"예", "아니요"};
+                    int deleteResult = JOptionPane.showOptionDialog(null, "삭제하면 복구가 불가능합니다. 정말 삭제하시겠습니까?", "CONFIRM", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE,
+                            null, yesnoBtn, "아니요");
+                    if (deleteResult == JOptionPane.YES_OPTION) {
+                        expenseTable_Model.removeRow(expenseTableSelected);
+                        try {
+                            Class.forName("com.mysql.jdbc.Driver"); // 1. 드라이버 로딩
+                            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/Term_Project?serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true&useSSL=false", "root", "dhgusgh8520"); // 2. 드라이버 연결
+                        } catch (Exception f) {
+                            f.printStackTrace();
+                        }
+                        String deleteTableRowFromDB = "DELETE FROM accountbook WHERE inputtime = '" + expenseTimeString + "' AND username = '" + Start.getname + "'";
+                        updateDB(deleteTableRowFromDB);
+                    } else {
+                        return;
+                    }
                 }
-                String[] yesnoBtn = {"예", "아니요"};
-                JOptionPane.showOptionDialog(null, "삭제하면 복구가 불가능합니다. 정말 삭제하시겠습니까?", "CONFIRM", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE,
-                        null, yesnoBtn, "아니요");
-                String deleteTableRowFromDB = "DELETE FROM accountbook WHERE inputdate = '" + getDate + "'";
-                updateDB(deleteTableRowFromDB);
+
             }
         });
+
         dailyPanel.add(delBtn);
 
         refreshCircle.setFont(new Font("DX빨간우체통B", Font.BOLD, 12));
@@ -676,7 +678,6 @@ public class Master extends JFrame {
         incomePane = new JScrollPane(incomeTable);
         incomePane.setBounds(27, 0, 549, 197);
         incomePanel.add(incomePane);
-
 
     }
 
@@ -869,7 +870,7 @@ public class Master extends JFrame {
         // DB 연결 시도
         try {
             Class.forName("com.mysql.jdbc.Driver"); // 1. 드라이버 로딩
-            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/Term_Project?serverTimezone=Asia/Seoul&useSSL=false", "root", "dhgusgh8520"); // 2. 드라이버 연결
+            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/Term_Project?serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true&useSSL=false", "root", "dhgusgh8520"); // 2. 드라이버 연결
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -882,17 +883,23 @@ public class Master extends JFrame {
             ps.setString(2, date);
             rs = ps.executeQuery();
             while (rs.next()) {
+                String inputtime = rs.getString("inputtime");
                 String itemname = rs.getString("itemname");
                 String cardcash = rs.getString("cardcash");
                 String itemtype = rs.getString("itemtype");
                 String amount = rs.getString("amount");
 
                 incomeTable_Model_Vector = new Vector();
+                incomeTable_Model_Vector.add(inputtime);
                 incomeTable_Model_Vector.add(itemname);
                 incomeTable_Model_Vector.add(cardcash);
                 incomeTable_Model_Vector.add(itemtype);
                 incomeTable_Model_Vector.add(amount);
                 incomeTable_Model.addRow(incomeTable_Model_Vector);
+
+                incomeTable.setAutoCreateRowSorter(true);
+                TableRowSorter sorter = new TableRowSorter(incomeTable.getModel());
+                incomeTable.setRowSorter(sorter);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -903,7 +910,7 @@ public class Master extends JFrame {
         // DB 연결 시도
         try {
             Class.forName("com.mysql.jdbc.Driver"); // 1. 드라이버 로딩
-            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/Term_Project?serverTimezone=Asia/Seoul&useSSL=false", "root", "dhgusgh8520"); // 2. 드라이버 연결
+            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/Term_Project?serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true&useSSL=false", "root", "dhgusgh8520"); // 2. 드라이버 연결
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -916,17 +923,23 @@ public class Master extends JFrame {
             ps.setString(2, date);
             rs = ps.executeQuery();
             while (rs.next()) {
+                String inputtime = rs.getString("inputtime");
                 String itemname = rs.getString("itemname");
                 String cardcash = rs.getString("cardcash");
                 String itemtype = rs.getString("itemtype");
                 String amount = rs.getString("amount");
 
                 expenseTable_Model_Vector = new Vector();
+                expenseTable_Model_Vector.add(inputtime);
                 expenseTable_Model_Vector.add(itemname);
                 expenseTable_Model_Vector.add(cardcash);
                 expenseTable_Model_Vector.add(itemtype);
                 expenseTable_Model_Vector.add(amount);
                 expenseTable_Model.addRow(expenseTable_Model_Vector);
+
+                expenseTable.setAutoCreateRowSorter(true);
+                TableRowSorter sorter = new TableRowSorter(expenseTable.getModel());
+                expenseTable.setRowSorter(sorter);
 
             }
         } catch (Exception e) {
@@ -935,11 +948,10 @@ public class Master extends JFrame {
     }
 
     public void getIncomeSum(String name, String date) {
-
         // DB 연결 시도
         try {
             Class.forName("com.mysql.jdbc.Driver"); // 1. 드라이버 로딩
-            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/Term_Project?serverTimezone=Asia/Seoul&useSSL=false", "root", "dhgusgh8520"); // 2. 드라이버 연결
+            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/Term_Project?serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true&useSSL=false", "root", "dhgusgh8520"); // 2. 드라이버 연결
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -969,7 +981,7 @@ public class Master extends JFrame {
         // DB 연결 시도
         try {
             Class.forName("com.mysql.jdbc.Driver"); // 1. 드라이버 로딩
-            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/Term_Project?serverTimezone=Asia/Seoul&useSSL=false", "root", "dhgusgh8520"); // 2. 드라이버 연결
+            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/Term_Project?serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true&useSSL=false", "root", "dhgusgh8520"); // 2. 드라이버 연결
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -999,7 +1011,7 @@ public class Master extends JFrame {
         // DB 연결 시도
         try {
             Class.forName("com.mysql.jdbc.Driver"); // 1. 드라이버 로딩
-            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/Term_Project?serverTimezone=Asia/Seoul&useSSL=false", "root", "dhgusgh8520"); // 2. 드라이버 연결
+            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/Term_Project?serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true&useSSL=false", "root", "dhgusgh8520"); // 2. 드라이버 연결
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -1026,7 +1038,7 @@ public class Master extends JFrame {
         // DB 연결 시도
         try {
             Class.forName("com.mysql.jdbc.Driver"); // 1. 드라이버 로딩
-            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/Term_Project?serverTimezone=Asia/Seoul&useSSL=false", "root", "dhgusgh8520"); // 2. 드라이버 연결
+            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/Term_Project?serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true&useSSL=false", "root", "dhgusgh8520"); // 2. 드라이버 연결
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -1053,7 +1065,7 @@ public class Master extends JFrame {
         // DB 연결 시도
         try {
             Class.forName("com.mysql.jdbc.Driver"); // 1. 드라이버 로딩
-            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/Term_Project?serverTimezone=Asia/Seoul&useSSL=false", "root", "dhgusgh8520"); // 2. 드라이버 연결
+            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/Term_Project?serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true&useSSL=false", "root", "dhgusgh8520"); // 2. 드라이버 연결
             stmt = con.createStatement();
         } catch (Exception e) {
             e.printStackTrace();
