@@ -2,7 +2,8 @@ package codes;
 
 /**
  * 시작 화면
- * 로그인 할 수 있음
+ * 로그인 기능
+ * 회원가입 기능
  * 로그인 할 떄 DB에 접근 후 존재하는 아이디에 한해서만 로그인 가능
  */
 
@@ -27,19 +28,23 @@ public class Start extends JFrame {
     /* 이미지 */
     private BufferedImage loginImg = null; // 이미지 저장 하기 위한 객체
 
-    /* JLabel */
-    private JLabel loginLbl = new JLabel(" 아  이  디"); // "아이디" 레이블
-    private JLabel passLbl = new JLabel("비 밀 번 호"); //  "비밀번호" 레이블
-    private JLabel createAccountLbl = new JLabel("회원가입  하기"); // "회원가입 하기" 레이블
-    public static String getname;
-    public static String getalias;
+    /* 아이디 */
+    private JLabel idLbl = new JLabel(" 아  이  디"); // 아이디 레이블
+    private JTextField idTxt = new JTextField(15); // 아이디 입력 텍스트 필드
 
-    /* JTextField & JPasswordField*/
-    private JTextField loginTxt = new JTextField(15); // 아이디 입력 텍스트 필드
+    /* 비밀번호 */
+    private JLabel passLbl = new JLabel("비 밀 번 호"); // 비밀번호 레이블
     private JPasswordField passTxt = new JPasswordField(15); // 비밀번호 입력 텍스트 필드
 
-    /* JButton*/
-    private JButton loginBtn = new JButton("로  그  인");    // 이미지로 대체
+    /* 회원가입 */
+    private JLabel createAccountLbl = new JLabel("회원가입  하기"); // "회원가입 하기" 레이블
+
+    /* 로그인 */
+    private JButton loginBtn = new JButton("로  그  인"); // 이미지로 대체
+
+    /* 변수 */
+    public static String getname; // 다른 클래스에서 사용 할 수 있도록 이름 저장
+    public static String getalias; // 다른 클래스에서 사용 할 수 있도록 별명 저장
 
     /* DB */
     private Connection con = null;
@@ -70,26 +75,26 @@ public class Start extends JFrame {
         MyPanel panel = new MyPanel();
         panel.setBounds(0, 0, Main.BIG_SCREEN_WIDTH, Main.BIG_SCREEN_HEIGHT);
 
-        // 로그인 레이블
-        loginLbl.setBounds(520, 400, 80, 30);
-        loginLbl.setFont(new Font("DX빨간우체통B", Font.BOLD, 16));
-        layeredPane.add(loginLbl);
+        // 아이디 레이블
+        idLbl.setBounds(520, 400, 80, 30);
+        idLbl.setFont(new Font("DX빨간우체통B", Font.BOLD, 16));
+        layeredPane.add(idLbl);
 
-        // 로그인 텍스트 필드
-        loginTxt.setBounds(610, 400, 150, 30);
-        loginTxt.setHorizontalAlignment(JTextField.CENTER);
-        loginTxt.setBorder(javax.swing.BorderFactory.createEmptyBorder()); // 텍스트필드의 경계선 제거
-        // 아이디 길이 15로 제한
-        loginTxt.addKeyListener(new KeyAdapter() {
+        // 아이디 텍스트 필드
+        idTxt.setBounds(610, 400, 150, 30);
+        idTxt.setHorizontalAlignment(JTextField.CENTER);
+        idTxt.setBorder(javax.swing.BorderFactory.createEmptyBorder()); // 텍스트필드의 경계선 제거
+        idTxt.addKeyListener(new KeyAdapter() {
             @Override
             public void keyTyped(KeyEvent e) {
+                // 아이디 길이 15자로 제한
                 JTextField logCheck = (JTextField) e.getSource();
                 if (logCheck.getText().length() >= 15) {
                     e.consume();
                 }
             }
         });
-        layeredPane.add(loginTxt);
+        layeredPane.add(idTxt);
 
         // 비밀번호 레이블
         passLbl.setBounds(520, 460, 80, 30);
@@ -114,31 +119,31 @@ public class Start extends JFrame {
         passTxt.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
+                // 패스워드 택스트 필드에서 엔터키로 로그인
                 int enterkey = e.getKeyChar();
                 if(enterkey == KeyEvent.VK_ENTER) {
                     char[] pass = passTxt.getPassword();
                     String passString = new String(pass);
-                    int result = checkLogin(loginTxt.getText(), passString);
+                    int result = checkLogin(idTxt.getText(), passString);
                     // 로그인 성공
                     if (result == 1) {
-                        JOptionPane.showMessageDialog(null, "로그인 성공", "MESSAGE", JOptionPane.PLAIN_MESSAGE);
-                        getName(loginTxt.getText());
-                        getAlias(loginTxt.getText());
-                        // 가계부 메인
+                        JOptionPane.showMessageDialog(null, "로그인 성공", "SYSTEM MESSAGE", JOptionPane.DEFAULT_OPTION);
+                        getName(idTxt.getText()); // 로그인 한 사람의 이름 가져오기
+                        getAlias(idTxt.getText()); // 로그인 한 사람의 별명 가져오기
                         dispose();
                         new Master();
                     }
                     // 비밀번호 불일치
                     else if (result == 0) {
-                        JOptionPane.showMessageDialog(null, "비밀번호를 확인해주세요", "MESSAGE", JOptionPane.ERROR_MESSAGE);
-                        loginTxt.setText("");
+                        JOptionPane.showMessageDialog(null, "비밀번호를 확인해주세요", "SYSTEM MESSAGE", JOptionPane.ERROR_MESSAGE);
                         passTxt.setText("");
                     }
                     // 없는 아이디
                     else if (result == -1) {
-                        JOptionPane.showMessageDialog(null, "아이디를 확인해주세요", "MESSAGE", JOptionPane.ERROR_MESSAGE);
-                        loginTxt.setText("");
+                        JOptionPane.showMessageDialog(null, "아이디를 확인해주세요", "SYSTEM MESSAGE", JOptionPane.ERROR_MESSAGE);
+                        idTxt.setText("");
                         passTxt.setText("");
+                        idTxt.requestFocus();
                     }
                     // DB 오류
                     else if (result == -2) {
@@ -150,6 +155,7 @@ public class Start extends JFrame {
         });
         layeredPane.add(passTxt);
 
+        // 로그인 버튼
         loginBtn.setBounds(600, 540, 100, 40);
         loginBtn.addMouseListener(new MouseAdapter() {
             @Override
@@ -157,37 +163,37 @@ public class Start extends JFrame {
             public void mouseClicked(MouseEvent e) {
                 char[] pass = passTxt.getPassword();
                 String passString = new String(pass);
-                int result = checkLogin(loginTxt.getText(), passString);
+                int result = checkLogin(idTxt.getText(), passString);
                 // 로그인 성공
                 if (result == 1) {
-                    JOptionPane.showMessageDialog(null, "로그인 성공", "MESSAGE", JOptionPane.DEFAULT_OPTION);
-                    getName(loginTxt.getText());
-                    getAlias(loginTxt.getText());
-                    // 가계부 메인
+                    JOptionPane.showMessageDialog(null, "로그인 성공", "SYSTEM MESSAGE", JOptionPane.DEFAULT_OPTION);
+                    getName(idTxt.getText()); // 로그인 한 사람의 이름 가져오기
+                    getAlias(idTxt.getText()); // 로그인 한 사람의 별명 가져오기
                     dispose();
                     new Master();
                 }
                 // 비밀번호 불일치
                 else if (result == 0) {
-                    JOptionPane.showMessageDialog(null, "비밀번호를 확인해주세요", "MESSAGE", JOptionPane.ERROR_MESSAGE);
-                    loginTxt.setText("");
+                    JOptionPane.showMessageDialog(null, "비밀번호를 확인해주세요", "SYSTEM MESSAGE", JOptionPane.ERROR_MESSAGE);
                     passTxt.setText("");
                 }
                 // 없는 아이디
                 else if (result == -1) {
-                    JOptionPane.showMessageDialog(null, "아이디를 확인해주세요", "MESSAGE", JOptionPane.ERROR_MESSAGE);
-                    loginTxt.setText("");
+                    JOptionPane.showMessageDialog(null, "아이디를 확인해주세요", "SYSTEM MESSAGE", JOptionPane.ERROR_MESSAGE);
+                    idTxt.setText("");
                     passTxt.setText("");
+                    idTxt.requestFocus();
                 }
                 // DB 오류
                 else if (result == -2) {
-                    JOptionPane.showMessageDialog(null, "DB 오류가 발생했습니다.", "MESSAGE", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(null, "DB 오류가 발생했습니다.", "SYSTEM MESSAGE", JOptionPane.ERROR_MESSAGE);
                     System.exit(0);
                 }
             }
         });
         layeredPane.add(loginBtn);
 
+        // 회원가입 레이블
         createAccountLbl.setBounds(610, 590, 100, 40);
         createAccountLbl.setFont(new Font("DX빨간우체통B", Font.BOLD, 14));
         createAccountLbl.setForeground(Color.GRAY);
@@ -205,13 +211,14 @@ public class Start extends JFrame {
         setVisible(true);
     }
 
+    // 이미지를 위한 그래픽
     class MyPanel extends JPanel {
         public void paint(Graphics g) {
             g.drawImage(loginImg, 0, 0, null);
         }
     }
 
-    // 로그인시 아이디 및 비밀번호 확인
+    // 로그인시 아이디 및 비밀번호 확인 (디비 접속)
     public int checkLogin(String id, String pswd) {
         // DB 연결 시도
         try {
@@ -241,6 +248,7 @@ public class Start extends JFrame {
         return -2; // 데이터베이스 오류
     }
 
+    // 로그인 시 이름 가져오는 함수 (디비 접속)
     public String getName(String id) {
         // DB 연결 시도
         try {
@@ -264,6 +272,7 @@ public class Start extends JFrame {
         return getname;
     }
 
+    // 로그인 시 별명 가져오는 함수 (디비 접속)
     public String getAlias(String id) {
         // DB 연결 시도
         try {

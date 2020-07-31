@@ -1,5 +1,10 @@
 package codes;
 
+/**
+ * 수입 혹은 지출 추가 화면
+ * 날짜, 시간, 항목 이름, 수입 / 지출, 구분 등 상세하게 추가 가능
+ */
+
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
@@ -9,7 +14,6 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.*;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.Vector;
 
@@ -24,64 +28,64 @@ public class addExpenseIncome extends JFrame {
     /* TextField X 값 */
     private static final int SECOND_X = 140;
 
+    /* 날짜 */
+    private JLabel dateLbl = new JLabel("날    짜"); // 날짜 레이블
+    private JLabel getDateLbl = new JLabel(Master.getDailyDateLbl.getText()); // Master.java 에서 선택한 날짜 가져오기
+
+    /* 시간 */
+    private JLabel timeLbl = new JLabel("시    간"); // 시간 레이블
+    private JLabel useTimeLbl = new JLabel("현재 시간 사용"); // 현재 시간 사용 레이블
+    private JLabel useCustomTimeLbl = new JLabel("직접 시간 입력"); // 직접 시간 입력 레이블
+    private JCheckBox useTime = new JCheckBox(); // 현재 시간 사용할 지 직접 시간 입력할 지 선택을 위한 체크 박스
+    private JLabel hourLbl = new JLabel("시"); // 시 레이블
+    private JLabel minuteLbl = new JLabel("분"); // 분 레이블
+    private JLabel secondLbl = new JLabel("초"); // 초 레이블
+    private JTextField hourTxt = new JTextField(); // 시 텍스트 필드
+    private JTextField minTxt = new JTextField(); // 분 텍스트 필드
+    private JTextField secTxt = new JTextField(); // 분 텍스트 필드
+    Date now = new Date(); // 시간을 불러오기 위한 함수
+    SimpleDateFormat formatH, formatM, formatS; // 시간 저장 포맷 지정
+
+    /* 구분 */
+    private JLabel incomeexpenseLbl = new JLabel("구    분"); // 구분 레이블
+    private JRadioButton incomeRadioBtn = new JRadioButton("수입"); // 수입 라디오 버튼
+    private JRadioButton expenseRadioBtn = new JRadioButton("지출"); // 지출 라디오 버튼
+    private ButtonGroup incomexpenseTypeGroup = new ButtonGroup(); // 수입과 지출 버튼 그룹
+    /* 항목 이름*/
+    private JLabel itemNameLbl = new JLabel("항목 이름"); // 항목 이름 레이블
+    private JTextField itemNameTxt = new JTextField(); // 항목 이름 텍스트 필드
+
+    /* 항목 선택 */
+    private JLabel itemLbl = new JLabel("항    목"); // 항목 레이블
+    String items[] = {"선택", "<지출>", "교통", "통신", "식비", "개인", "---", "<수입>", "용돈", "월급", "기타"}; // 항목 선택 사항
+    private JComboBox itemCombo = new JComboBox(items); // 항목을 위한 itemCombo
+
+    /* 결제 수단 */
+    private JLabel cardcashTypeLbl = new JLabel("결제 수단"); // 결제 수단 레이블
+    private JRadioButton cardRadioBtn = new JRadioButton("카드"); // 카드 라디오 버튼
+    private JRadioButton cashRadioBtn = new JRadioButton("현금"); // 현금 라디오 버튼
+    private ButtonGroup cardcashTypeGroup = new ButtonGroup(); // 카드와 현금 라디오 버튼 그룹
+
+    /* 금액 */
+    private JLabel amountLbl = new JLabel("금    액"); // 금액 레이블
+    private JTextField amountTxt = new JTextField(); // 금액 텍스트 필드
+
+    /* 추가 취소 */
+    private JButton addBtn = new JButton("추가"); // 추가 버튼
+    private JButton closeBtn = new JButton("취소"); // 취소 버튼
+
+    /* 변수 */
+    private String isCashCard; // 현금인지 카드인지 저장하는 변수
+    private String isIncomeExpense; // 지출인지 수입인지 저장하는 변수
+    private String getComboBoxItem; // 아이템 콤보의 텍스트 읽어 오는 변수
+    String getHrs, getMin, getSec; // 최종적으로 정한 시간 저장하기 위한 변수
+    static String getTime; // 최종적으로 정한 시간 하나로 모은 변수
+
     /* DB */
     private Connection con = null;
     private PreparedStatement ps = null;
     private ResultSet rs = null;
     private Statement stmt = null;
-
-    /* JLabel */
-    private JLabel dateLbl = new JLabel("날    짜");
-    private JLabel timeLbl = new JLabel("시    간");
-    private JLabel useTimeLbl = new JLabel("현재 시간 사용");
-    private JLabel useCustomTimeLbl = new JLabel("직접 시간 입력");
-    private JLabel hourLbl = new JLabel("시");
-    private JLabel minuteLbl = new JLabel("분");
-    private JLabel secondLbl = new JLabel("초");
-    private JLabel getDateLbl = new JLabel(Master.getDailyDateLbl.getText());
-    private JLabel nameLbl = new JLabel("항목 이름");
-    private JLabel itemLbl = new JLabel("항    목");
-    private JLabel cardcashTypeLbl = new JLabel("결제 수단");
-    private JLabel amountLbl = new JLabel("금    액");
-    private JLabel incomeexpenseLbl = new JLabel("구    분");
-
-    /* JTextfield */
-    private JTextField nameTxt = new JTextField();
-    private JTextField amountTxt = new JTextField();
-    private JTextField hourTxt = new JTextField();
-    private JTextField minTxt = new JTextField();
-    private JTextField secTxt = new JTextField();
-
-    /* JCheckBox */
-    private JCheckBox useTime = new JCheckBox();
-
-    /* JComboBox */
-    String items[] = {"선택", "<지출>", "교통", "통신", "식비", "개인", "---", "<수입>", "용돈", "월급", "기타"};
-    private JComboBox itemCombo = new JComboBox(items);
-
-    /* JRadioButton */
-    private JRadioButton cardRadioBtn = new JRadioButton("카드");
-    private JRadioButton cashRadioBtn = new JRadioButton("현금");
-    private ButtonGroup cardcashTypeGroup = new ButtonGroup();
-    private JRadioButton incomeRadioBtn = new JRadioButton("수입");
-    private JRadioButton expenseRadioBtn = new JRadioButton("지출");
-    private ButtonGroup incomexpenseTypeGroup = new ButtonGroup();
-
-    /* JButton */
-    private JButton addBtn = new JButton("추가");
-    private JButton closeBtn = new JButton("취소");
-
-    /* String */
-    private String isCashCard;
-    private String isIncomeExpense;
-    private String getComboBoxItem;
-
-    Date now = new Date();
-    SimpleDateFormat formatH, formatM, formatS;
-    String getHrs, getMin, getSec;
-    static String getTime;
-
-    private Calendar today = Calendar.getInstance();
 
     /* 생성자 */
     public addExpenseIncome() {
@@ -141,20 +145,23 @@ public class addExpenseIncome extends JFrame {
                     useTimeLbl.setVisible(true);
                     useCustomTimeLbl.setVisible(false);
                     hourTxt.setEditable(true);
-                    hourTxt.setBackground(Color.WHITE);
                     minTxt.setEditable(true);
-                    minTxt.setBackground(Color.WHITE);
                     secTxt.setEditable(true);
+                    hourTxt.setBackground(Color.WHITE);
+                    minTxt.setBackground(Color.WHITE);
                     secTxt.setBackground(Color.WHITE);
                 } else {
                     useTimeLbl.setVisible(false);
                     useCustomTimeLbl.setVisible(true);
                     hourTxt.setEditable(false);
+                    minTxt.setEditable(false);
+                    secTxt.setEditable(false);
                     hourTxt.setBackground(Color.LIGHT_GRAY);
-                    minTxt.setEditable(true);
                     minTxt.setBackground(Color.LIGHT_GRAY);
-                    secTxt.setEditable(true);
                     secTxt.setBackground(Color.LIGHT_GRAY);
+                    hourTxt.setText(formatH.format(now)); // 추가 누른 시간의 시
+                    minTxt.setText(formatM.format(now)); // 추가 누른 시간의 분
+                    secTxt.setText(formatS.format(now)); // 추가 누른 시간의 초
                 }
             }
         });
@@ -165,6 +172,7 @@ public class addExpenseIncome extends JFrame {
         formatM = new SimpleDateFormat("mm"); // 분 구하기
         formatS = new SimpleDateFormat("ss"); // 초 구하기
 
+        // 시 텍스트
         hourTxt.setBounds(SECOND_X + 40, 100, 30, 30);
         hourTxt.setFont(new Font("DX빨간우체통B", Font.BOLD, 15));
         hourTxt.setText(formatH.format(now));
@@ -174,10 +182,12 @@ public class addExpenseIncome extends JFrame {
         hourTxt.setBorder(javax.swing.BorderFactory.createEmptyBorder());
         layeredPane.add(hourTxt);
 
+        // 시 레이블
         hourLbl.setBounds(SECOND_X + 75, 100, 30, 30);
         hourLbl.setFont(new Font("DX빨간우체통B", Font.PLAIN, 15));
         layeredPane.add(hourLbl);
 
+        // 분 텍스트
         minTxt.setBounds(SECOND_X + 100, 100, 30, 30);
         minTxt.setFont(new Font("DX빨간우체통B", Font.BOLD, 15));
         minTxt.setText(formatM.format(now));
@@ -187,10 +197,12 @@ public class addExpenseIncome extends JFrame {
         minTxt.setBorder(javax.swing.BorderFactory.createEmptyBorder());
         layeredPane.add(minTxt);
 
+        // 분 레이블
         minuteLbl.setBounds(SECOND_X + 135, 100, 30, 30);
         minuteLbl.setFont(new Font("DX빨간우체통B", Font.PLAIN, 15));
         layeredPane.add(minuteLbl);
 
+        // 초 텍스트
         secTxt.setBounds(SECOND_X + 160, 100, 30, 30);
         secTxt.setFont(new Font("DX빨간우체통B", Font.BOLD, 15));
         secTxt.setText(formatS.format(now));
@@ -200,6 +212,7 @@ public class addExpenseIncome extends JFrame {
         secTxt.setBorder(javax.swing.BorderFactory.createEmptyBorder());
         layeredPane.add(secTxt);
 
+        // 초 레이블
         secondLbl.setBounds(SECOND_X + 195, 100, 30, 30);
         secondLbl.setFont(new Font("DX빨간우체통B", Font.PLAIN, 15));
         layeredPane.add(secondLbl);
@@ -219,17 +232,17 @@ public class addExpenseIncome extends JFrame {
         layeredPane.add(incomeRadioBtn);
         layeredPane.add(expenseRadioBtn);
 
-        // 이름 레이블
-        nameLbl.setBounds(FIRST_X, 200, 80, 30);
-        nameLbl.setFont(new Font("DX빨간우체통B", Font.BOLD, 15));
-        layeredPane.add(nameLbl);
+        // 항목 이름 레이블
+        itemNameLbl.setBounds(FIRST_X, 200, 80, 30);
+        itemNameLbl.setFont(new Font("DX빨간우체통B", Font.BOLD, 15));
+        layeredPane.add(itemNameLbl);
 
-        // 이름 텍스트필드
-        nameTxt.setBounds(SECOND_X, 200, 150, 30);
-        nameTxt.setFont(new Font("DX빨간우체통B", Font.BOLD, 15));
-        nameTxt.setHorizontalAlignment(JTextField.CENTER);
-        nameTxt.setBorder(javax.swing.BorderFactory.createEmptyBorder());
-        layeredPane.add(nameTxt);
+        // 항목 이름 텍스트필드
+        itemNameTxt.setBounds(SECOND_X, 200, 150, 30);
+        itemNameTxt.setFont(new Font("DX빨간우체통B", Font.BOLD, 15));
+        itemNameTxt.setHorizontalAlignment(JTextField.CENTER);
+        itemNameTxt.setBorder(javax.swing.BorderFactory.createEmptyBorder());
+        layeredPane.add(itemNameTxt);
 
         // 카드, 현금 레이블
         cardcashTypeLbl.setBounds(FIRST_X, 250, 80, 30);
@@ -284,7 +297,7 @@ public class addExpenseIncome extends JFrame {
         amountLbl.setFont(new Font("DX빨간우체통B", Font.BOLD, 15));
         layeredPane.add(amountLbl);
 
-        // 금액 텍스트필드
+        // 금액 텍스트 필드
         amountTxt.setBounds(SECOND_X, 350, 150, 30);
         amountTxt.setFont(new Font("DX빨간우체통B", Font.BOLD, 15));
         amountTxt.setHorizontalAlignment(JTextField.CENTER);
@@ -319,26 +332,26 @@ public class addExpenseIncome extends JFrame {
                 getComboBoxItem = itemCombo.getSelectedItem().toString();
                 JOptionPane.showMessageDialog(null, "추가되었습니다.", "MESSAGE", JOptionPane.ERROR_MESSAGE);
                 String addToDB = "INSERT INTO accountbook(username,incomeexpense,inputdate,itemname,cardcash,itemtype,amount,inputtime)" +
-                        "VALUES('" + Start.getname + "', '" + isIncomeExpense + "','" + Master.getDate + "','" + nameTxt.getText() + "','" + isCashCard + "', '" + getComboBoxItem + "', '" + amountTxt.getText() + "','" + getTime + "')";
+                        "VALUES('" + Start.getname + "', '" + isIncomeExpense + "','" + Master.getDate + "','" + itemNameTxt.getText() + "','" + isCashCard + "', '" + getComboBoxItem + "', '" + amountTxt.getText() + "','" + getTime + "')";
                 updateDB(addToDB);
                 if (isIncomeExpense.equals("수입")) {
                     Master.incomeTable_Model_Vector = new Vector();
                     Master.incomeTable_Model_Vector.add(getTime);
-                    Master.incomeTable_Model_Vector.add(nameTxt.getText());
+                    Master.incomeTable_Model_Vector.add(itemNameTxt.getText());
                     Master.incomeTable_Model_Vector.add(isCashCard);
                     Master.incomeTable_Model_Vector.add(getComboBoxItem);
                     Master.incomeTable_Model_Vector.add(amountTxt.getText());
                     Master.incomeTable_Model.addRow(Master.incomeTable_Model_Vector);
-                    updateIncomeSum(Start.getname, Master.getDate);
+                    updateIncome(Start.getname, Master.getDate);
                 } else {
                     Master.expenseTable_Model_Vector = new Vector();
                     Master.expenseTable_Model_Vector.add(getTime);
-                    Master.expenseTable_Model_Vector.add(nameTxt.getText());
+                    Master.expenseTable_Model_Vector.add(itemNameTxt.getText());
                     Master.expenseTable_Model_Vector.add(isCashCard);
                     Master.expenseTable_Model_Vector.add(getComboBoxItem);
                     Master.expenseTable_Model_Vector.add(amountTxt.getText());
                     Master.expenseTable_Model.addRow(Master.expenseTable_Model_Vector);
-                    getExpenseSum(Start.getname, Master.getDate);
+                    updateExpense(Start.getname, Master.getDate);
                 }
                 dispose();
             }
@@ -360,13 +373,14 @@ public class addExpenseIncome extends JFrame {
         setVisible(true);
     }
 
-
+    // 이미지를 위한 그래픽
     class MyPanel extends JPanel {
         public void paint(Graphics g) {
             g.drawImage(colorBackground, 0, 0, null);
         }
     }
 
+    // 디비 업데이트 (디비)
     public void updateDB(String addToDB) {
         // DB 연결 시도
         try {
@@ -384,7 +398,8 @@ public class addExpenseIncome extends JFrame {
         }
     }
 
-    public void updateIncomeSum(String name, String date) {
+    // 수입 데이터 업데이트 (디비)
+    public void updateIncome(String name, String date) {
         // DB 연결 시도
         try {
             Class.forName("com.mysql.jdbc.Driver"); // 1. 드라이버 로딩
@@ -414,7 +429,8 @@ public class addExpenseIncome extends JFrame {
         Master.totalIncomeSum = 0;
     }
 
-    public void getExpenseSum(String name, String date) {
+    // 지출 데이터 업데이트 (디비)
+    public void updateExpense(String name, String date) {
         // DB 연결 시도
         try {
             Class.forName("com.mysql.jdbc.Driver"); // 1. 드라이버 로딩

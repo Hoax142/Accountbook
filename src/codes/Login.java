@@ -33,47 +33,53 @@ public class Login extends JFrame {
     /* TextField X 값 */
     private static final int SECOND_X = 140;
 
-    /* DB */
-    private Connection con = null;
-    private PreparedStatement ps = null;
-    private ResultSet rs;
-    private Statement stmt;
-
     /* 이미지 */
     private BufferedImage colorBackground = null;
 
-    /* JLabel */
+    /* 이름 */
     private JLabel nameLbl = new JLabel("이름"); // 이름
+    private JTextField nameTxt = new JTextField(null); // 이름 입력 필드
+
+    /* 아이디 */
     private JLabel idLbl = new JLabel("아이디"); // 아이디
     private JLabel id15 = new JLabel("15자 이내로 입력해주세요"); // 아이디 주의사항
-    private JLabel nicknameLbl = new JLabel("별명"); // 별명
-    private JLabel nickname15 = new JLabel("15자 이내로 입력해주세요"); // 별명 주의사항
+    private JTextField idTxt = new JTextField(); // 아이디 입력 필드
+    private JButton checkIdBtn = new JButton("중복확인"); // 아이디 중복 확인 버튼
+
+    /* 비밀번호 */
     private JLabel passLbl = new JLabel("비밀번호"); // 비밀번호
     private JLabel passLbl_Check = new JLabel("비밀번호 확인"); // 비밀번호 확인
-    private JLabel birthdateLbl = new JLabel("생년월일"); // 생년월일
     private JLabel password15 = new JLabel("15자 이내로 입력해주세요"); // 비밀번호 주의사항
     private JLabel password_check = new JLabel(""); // 비밀번호 일치 확인
-    private JLabel dateLbl = new JLabel("ex) 1994 06 06"); // 생년월일 입력 예시
-
-    /* JTextField & JPasswordField */
-    private JTextField nameTxt = new JTextField(null); // 이름 입력 필드
-    private JTextField idTxt = new JTextField(); // 아이디 입력 필드
-    private JTextField nicknameTxt = new JTextField(); // 별명 입력 필드
     private JPasswordField passTxt = new JPasswordField(); // 비밀번호 입력 필드
     private JPasswordField passTxt_Check = new JPasswordField(); // 비밀번호 재입력 입력 필드
+    private JButton checkPassBtn = new JButton("일치확인"); // 비밀번호 일치 확인 버튼
+
+    /* 별명 */
+    private JLabel nicknameLbl = new JLabel("별명"); // 별명
+    private JLabel nickname15 = new JLabel("15자 이내로 입력해주세요"); // 별명 주의사항
+    private JTextField nicknameTxt = new JTextField(); // 별명 입력 필드
+
+    /* 생년월일 */
+    private JLabel birthdateLbl = new JLabel("생년월일"); // 생년월일
+    private JLabel dateLbl = new JLabel("ex) 1994 06 06"); // 생년월일 입력 예시
     private JTextField yearTxt = new JTextField(); // 태어난 년도 입력 필드
     private JTextField monthTxt = new JTextField(); // 태어난 월 입력 필드
     private JTextField dayTxt = new JTextField(); // 태어난 일 입력 필드
 
-    /* JButton */
-    private JButton checkIdBtn = new JButton("중복확인"); // 아이디 중복 확인 버튼
-    private JButton checkPassBtn = new JButton("일치확인"); // 비밀번호 일치 확인 버튼
+    /* 가입, 취소 버튼 */
     private JButton signupBtn = new JButton("가입"); // 가입 버튼
     private JButton exitBtn = new JButton("취소"); // 취소 버튼
 
-    /* int */
-    private int passCount = 0; // 비밀번호 일치 확인을 위한 변수
-    private int idCount = 0; // 아이디를 중복확인 하기 위한 변수
+    /* 변수 */
+    private int idCount = 0; // 가입할 때 아이디 중복 체크 했는지 확인 하기 위한 변수
+    private int passCount = 0; // 가입할 때 비밀번호 일치 했는지 확인 하기 위한 변수
+
+    /* DB */
+    private Connection con = null;
+    private PreparedStatement ps = null;
+    private ResultSet rs = null;
+    private Statement stmt = null;
 
     // 생성자
     public Login() {
@@ -110,12 +116,12 @@ public class Login extends JFrame {
         layeredPane.add(nameTxt);
 
 
-        // 아이디
+        // 아이디 레이블
         idLbl.setBounds(FIRST_X, 120, 80, 30);
         idLbl.setFont(new Font("DX빨간우체통B", Font.BOLD, 15));
         layeredPane.add(idLbl);
 
-        // 아이디 15자 이내 레이블
+        // 아이디 15자 안내 레이블
         id15.setBounds(SECOND_X, 150, 150, 30);
         id15.setFont(new Font("DX빨간우체통B", Font.ITALIC, 13));
         id15.setForeground(Color.DARK_GRAY);
@@ -127,8 +133,8 @@ public class Login extends JFrame {
         idTxt.setBorder(javax.swing.BorderFactory.createEmptyBorder());
         idTxt.addKeyListener(new KeyAdapter() {
             @Override
-            // 아이디 15자로 제한
             public void keyTyped(KeyEvent e) {
+                // 아이디 15자로 제한
                 JTextField idCheck = (JTextField) e.getSource();
                 if (idCheck.getText().length() > 15) {
                     JOptionPane.showMessageDialog(null, "15자 이내로 입력해주세요", "MESSAGE", JOptionPane.ERROR_MESSAGE);
@@ -147,24 +153,25 @@ public class Login extends JFrame {
                 int result = checkID(idTxt.getText());
                 // 중복된 아이디
                 if (result == 1) {
-                    JOptionPane.showMessageDialog(null, "중복된 아이디입니다", "MESSAGE", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(null, "중복된 아이디입니다", "SYSTEM MESSAGE", JOptionPane.ERROR_MESSAGE);
                 }
                 // 사용할 수 있는 아이디
                 else if (result == 0) {
-                    JOptionPane.showMessageDialog(null, "사용할 수 있는 아이디입니다", "MESSAGE", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(null, "사용할 수 있는 아이디입니다", "SYSTEM MESSAGE", JOptionPane.DEFAULT_OPTION);
                     idCount++;
-                } else if (result == -1) {
-                    JOptionPane.showMessageDialog(null, "result = -1", "MESSAGE", JOptionPane.ERROR_MESSAGE);
+                }
+                //
+                else if (result == -1) {
+                    JOptionPane.showMessageDialog(null, "result = -1", "SYSTEM MESSAGE", JOptionPane.ERROR_MESSAGE);
                 }
                 // 데이터베이스 오류
                 else if (result == -2) {
-                    JOptionPane.showMessageDialog(null, "DB 오류가 발생했습니다.", "MESSAGE", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(null, "DB 오류가 발생했습니다.", "SYSTEM MESSAGE", JOptionPane.ERROR_MESSAGE);
                     System.exit(0);
                 }
             }
         });
         layeredPane.add(checkIdBtn);
-
 
         // 비밀번호 레이블
         passLbl.setBounds(FIRST_X, 190, 80, 30);
@@ -243,8 +250,8 @@ public class Login extends JFrame {
         yearTxt.setBorder(javax.swing.BorderFactory.createEmptyBorder());
         yearTxt.addKeyListener(new KeyAdapter() {
             @Override
-            // 슷자만 입력
             public void keyTyped(KeyEvent e) {
+                // 숫자만 입력
                 char c = e.getKeyChar();
                 if (!Character.isDigit(c)) {
                     e.consume();
@@ -265,8 +272,8 @@ public class Login extends JFrame {
         monthTxt.setBorder(javax.swing.BorderFactory.createEmptyBorder());
         monthTxt.addKeyListener(new KeyAdapter() {
             @Override
-            // 숫자만 입력
             public void keyTyped(KeyEvent e) {
+                // 숫자만 입력
                 char c = e.getKeyChar();
                 if (!Character.isDigit(c)) {
                     e.consume();
@@ -287,8 +294,8 @@ public class Login extends JFrame {
         dayTxt.setBorder(javax.swing.BorderFactory.createEmptyBorder());
         dayTxt.addKeyListener(new KeyAdapter() {
             @Override
-            // 숫자만 입력
             public void keyTyped(KeyEvent e) {
+                // 숫자만 입력
                 char c = e.getKeyChar();
                 if (!Character.isDigit(c)) {
                     e.consume();
@@ -326,8 +333,8 @@ public class Login extends JFrame {
         nicknameTxt.setBorder(javax.swing.BorderFactory.createEmptyBorder());
         nicknameTxt.addKeyListener(new KeyAdapter() {
             @Override
-            // 별명 15자로 제한
             public void keyTyped(KeyEvent e) {
+                // 별명 15자로 제한
                 JTextField nickNameCheck = (JTextField) e.getSource();
                 if (nickNameCheck.getText().length() > 15) {
                     JOptionPane.showMessageDialog(null, "15자 이내로 입력해주세요", "MESSAGE", JOptionPane.ERROR_MESSAGE);
@@ -357,16 +364,15 @@ public class Login extends JFrame {
                 }
                 // 비밀번호 체크 안했을 때 팝업
                 else if (passCount < 1) {
-                    JOptionPane.showMessageDialog(null, "비밀번호가 일치하지 않습니다", "MESSAGE", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(null, "비밀번호가 일치하지 않습니다", "MESSAGE", JOptionPane.WARNING_MESSAGE);
                 }
                 // 아이디 중복 확인 안했을 때 팝업
                 else if (idCount < 1) {
-                    JOptionPane.showMessageDialog(null, "아이디 중복 확인을 해주세요", "MESSAGE", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(null, "아이디 중복 확인을 해주세요", "MESSAGE", JOptionPane.WARNING_MESSAGE);
                 }
                 // 가입 성공
                 else {
-                    JOptionPane.showMessageDialog(null, "회원가입을 축하드립니다!", "MESSAGE", JOptionPane.INFORMATION_MESSAGE);
-                    //String addToDB = "INSERT members VALUES(" + nameTxt.getText() + ",'" + idTxt.getText() + "','" + passString + "','" + birthday + "', '" + nicknameTxt.getText() + "')";
+                    JOptionPane.showMessageDialog(null, "회원가입을 축하드립니다!", "MESSAGE", JOptionPane.DEFAULT_OPTION);
                     String addToDB = "INSERT INTO members(name,id,password,birthday,nickname)" +
                             "VALUES('" + nameTxt.getText() + "','" + idTxt.getText() + "','" + passString + "','" + birthday + "', '" + nicknameTxt.getText() + "')";
                     updateDB(addToDB);
@@ -393,12 +399,14 @@ public class Login extends JFrame {
         setVisible(true);
     }
 
+    // 이미지를 위한 그래픽
     class MyPanel extends JPanel {
         public void paint(Graphics g) {
             g.drawImage(colorBackground, 0, 0, null);
         }
     }
 
+    // 아이디 확인을 위한 함수 (디비)
     public int checkID(String id) {
         // DB 연결 시도
         try {
@@ -427,6 +435,7 @@ public class Login extends JFrame {
         return -2; // 데이터베이스 오류
     }
 
+    // 디비 업데이트 (디비)
     public void updateDB(String addToDB) {
         // DB 연결 시도
         try {

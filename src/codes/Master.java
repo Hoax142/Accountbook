@@ -1,8 +1,10 @@
 package codes;
 
 /**
+ * 메인 화면
  * 달력 -> 날짜 클릭 하면 해당 날짜로 이동
  * 지출 수입 확인 -> 추가 누르면 새로운 창에서 수입, 지출 입력 가능
+ * 메모 -> 날짜별 메모 기
  * JTabbedPane을 이용해 그래프 형식으로 보기
  */
 
@@ -29,108 +31,104 @@ public class Master extends JFrame {
     /* 이미지 */
     private BufferedImage colorBackground = null;
 
-    static String getDate;
+    /* 프로필 */
+    private final JPanel profilePanel = new JPanel(); // 프로필을 위한 패널
+    private final JLabel showProfileLbl = new JLabel(Start.getname + "(" + Start.getalias + ")님의 계정"); // 프로필
+    private final JButton logoutBtn = new JButton("로그아웃"); // 로그아웃 버튼
+
+    /* 달력 */
+    private static final int CAL_WIDTH = 7; // 캘린더의 너비
+    private static final int CAL_HEIGHT = 6; // 캘린더의 높이
+    private int calDates[][] = new int[CAL_HEIGHT][CAL_WIDTH]; // 캘린더를 담을 배열
+    private int calYear; // 년을 담을 변수
+    private int calMonth; // 월을 담을 변수
+    private int calDayOfMon; // 일을 담을 변수
+    private final int calLastDateofMonth[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}; // 1월 ~ 12월 일의 수를 담은 배열
+    private int calLastDate; // 월의 마지막 날을 담을 변수
+    private Calendar today = Calendar.getInstance(); // 추상 클래스 Calendar의 날짜 값을 가져오기 위한 메소드
+    private Calendar cal; // 캘린더 지정하기 위한 변수
+    private JPanel calTopPanel; // 캘린더의 윗 부분 패널
+    private JButton todayBtn; // 오늘 날짜로 이동할 버튼
+    private JLabel todayLbl; // 오늘 날짜를 표시할 레이블
+    private JButton lastYearBtn; // 저번 년도로 이동 버튼
+    private JButton lastMonthBtn; // 저번 달로 이동 버튼
+    private JLabel currMMYYYYLbl; // 표시 되고 있는 년/월 표시
+    private JButton nextMonBtn; // 다음 년도로 이동 버튼
+    private JButton nextYearBtn; // 다음 달로 이동 버튼
+    ListenForCalOpButtons lForCalOpButtons = new ListenForCalOpButtons(); // 달력의 날짜를 입력 했을 때 액션 함수
+    private JPanel calPanel; // 달력 부분 패널
+    private JButton weekDaysName[]; // 요일을 버튼화 할 버튼의 배열
+    private JButton dateBtns[][] = new JButton[6][7]; // 날짜를 담을 배열 (6 x 7)
+    listenforDateBtns lforDateBtns = new listenforDateBtns(); // 날짜 이동 버튼을 입력 했을 때 액션 함수
+    private final String WEEK_DAY_NAME[] = {"SUN", "MON", "TUE", "WED", "THR", "FRI", "SAT"}; // 요일 이름 담은 배열
+    static String getDate; // 날짜를 표시 하기 위한 레이블
+
+    /* 탭 패널 */
+    private JTabbedPane jTabbedPane1; // 탭 패널
+    private JPanel jTabbedPane1_daily; // 수입과 지출을 보여줄 탭 패널
+    private JPanel jTabbedPane1_report_circle; // 원형 그래프로 보여줄 탭 패널
+    private JPanel jTabbedPane1_report_stick; // 막대 그래프로 보여줄 탭 패널
+
+    /* 수입 & 지출 & 합계 */
+    private JPanel dailyPanel; // 수입과 지출 탭에서 추가, 삭제, 날짜를 위한 패널
+    private JButton addBtn = new JButton("추가"); // 수입 혹은 지출을 추가할 버튼
+    private JButton delBtn = new JButton("삭제"); // 수입 혹은 지출을 삭제할 버튼
+    static JLabel getDailyDateLbl = new JLabel(); // 수입과 지출 패널에서 선택한 날짜를 보여줄 레이블
+    private JPanel incomePanel; // 수입을 위한 패널
+    private JPanel incomeLblPanel; // 수입 단어를 담을 패널
+    private JScrollPane incomePane; // 수입 테이블을 위한 스크롤 패널
+    private Object[][] rowData = new Object[0][4]; // 테이블을 위한 배열
+    private String[] columnTitle = {"시간", "항목 이름", "결제 수단", "항목", "금액"}; // 테이블 칼럼의 제목
+    static Vector incomeTable_Model_Vector; // 수입 테이블을 위한 벡터
+    static DefaultTableModel incomeTable_Model; // 수입 테이블을 위한 DefaultTableModel (추가 및 삭제를 위해)
+    private JTable incomeTable; // 수입 테이블
+    private JPanel expensePanel; // 지출을 위한 패널
+    private JPanel expenseLblPanel; // 지출 단어를 위한 패널
+    private JScrollPane expensePane; // 지출 테이블을 위한 스크롤 패널
+    static Vector expenseTable_Model_Vector; // 지출 테이블을 위한 벡터
+    static DefaultTableModel expenseTable_Model; // 지출 테이블을 위한 DefaultTableModel (추가 및 삭제를 위해)
+    private JTable expenseTable; // 지출 테이블
+    private JPanel sumPanel; // 합계를 위한 패널
+    private JPanel sumLblPanel; // 합계 단어를 위한 패널
+    private JLabel incomeLbl = new JLabel("수입 :"); // 수입 합계를 위한 레이블
+    private JLabel expenseLbl = new JLabel("지출 :"); // 지출 합계를 위한 레이블
+    private JLabel totalLbl = new JLabel("전체 :"); // 전체 합계를 위한 레이블
+    static JLabel incomeSum = new JLabel("0"); // 수입 합계를 보여 주는 레이블, 0 으로 초기화
+    static JLabel expenseSum = new JLabel("0"); // 지출 합계를 보여 주는 레이블, 0 으로 초기화
+    static JLabel totalSum = new JLabel("0"); // 합계 합계를 보여 주는 레이블, 0 으로 초기화
+    static int totalIncomeSum = 0; // 디비에서 수입의 합을 구하기 위한 변수
+    static String stringIncomeSum; // 디비에서 수입의 합을 구하기 위한 변수
+    static int intIncomeSum; // 디비에서 수입의 함을 구하기 위한 변수
+    static int totalExpenseSum = 0; // 디비에서 지출의 합을 구하기 위한 변수
+    static String stringExpenseSum;// 디비에서 지출의 합을 구하기 위한 변수
+    static int intExpenseSum;// 디비에서 지출의 합을 구하기 위한 변수
+
+    // 원형 그래프
+    private JPanel circlePanel; // 원형 그래프 탭에서 날짜를 위한 패널
+    private JButton refreshCircle = new JButton("새로고침");
+    private JLabel getCircleDateLbl = new JLabel(); // 원형 그래프 패널에서 선택한 날짜를 보여줄 레이블
+
+    // 막대 그래프
+    private JPanel stickPanel; // 막대 그래프 탭에서 날짜를 위한 패널
+    private JButton refreshStick = new JButton("새로고침");
+    private JLabel getStickDateLbl = new JLabel(); // 막대 그래프 패널에서 선택한 날짜를 보여줄 레이블
+
+    /* 메모 패널 */
+    private JPanel memoPanel; // 메모를 위한 패널
+    private JTextArea memoArea = new JTextArea(""); // 메모를 위한 TextArea, ""로 초기화
+    private JScrollPane memoScroll = new JScrollPane(); // 메모를 적기위한 스크롤 패널
+    private JLabel getMemoDateLbl = new JLabel(); // 메모의 날짜를 표시 하기 위한 레이블
+    private JLabel memoLbl = new JLabel("메모"); // 메모 레이블
+    private JButton saveMemoBtn = new JButton("저장"); // 메모 저장을 위한 버튼 (디비와 연동)
+    private JButton delMemoBtn = new JButton("삭제"); // 메모를 삭제하기 위한 버튼 (디비와 연동)
+    private JButton editMemoBtn = new JButton("수정"); // 메모릉 수정하기 위한 버튼
+    private String memoContents = ""; // 메모가 빈칸 일 때
 
     /* DB */
     private Connection con = null;
     private PreparedStatement ps = null;
     private ResultSet rs = null;
     private Statement stmt = null;
-
-    /* 프로파일 */
-    private JPanel profilePanel = new JPanel();
-    private JLabel showProfileLbl = new JLabel(Start.getname + "(" + Start.getalias + ")님의 계정");
-    private JButton logoutBtn = new JButton("로그아웃");
-
-    /* 달력 */
-    private static final int CAL_WIDTH = 7; // 캘린더의 너비
-    private static final int CAL_HEIGHT = 6; // 캘린더의 높이
-    private int calDates[][] = new int[CAL_HEIGHT][CAL_WIDTH]; // 캘린더를 담을 배열
-    private int calYear;
-    private int calMonth;
-    private int calDayOfMon;
-    private final int calLastDateofMonth[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-    private int calLastDate;
-    private Calendar today = Calendar.getInstance();
-    private Calendar cal;
-
-    private JPanel calTopPanel;
-    private JButton todayBtn;
-    private JLabel todayLbl;
-    private JButton lYearBtn;
-    private JButton lMonthBtn;
-    private JLabel currMMYYYYLbl;
-    private JButton nMonBtn;
-    private JButton nYearBtn;
-    ListenForCalOpButtons lForCalOpButtons = new ListenForCalOpButtons();
-    private JPanel calPanel;
-    private JButton weekDaysName[];
-    private JButton dateBtns[][] = new JButton[6][7];
-    listenforDateBtns lforDateBtns = new listenforDateBtns();
-    private final String WEEK_DAY_NAME[] = {"SUN", "MON", "TUE", "WED", "THR", "FRI", "SAT"};
-
-    /* 수입 & 지출 */
-    JTabbedPane jTabbedPane1;
-    JPanel jTabbedPane1_daily;
-    JPanel jTabbedPane1_report_circle;
-    JPanel jTabbedPane1_report_stick;
-
-    JPanel dailyPanel;
-    JPanel circlePanel;
-    JPanel stickPanel;
-    JButton addBtn = new JButton("추가");
-    JButton delBtn = new JButton("삭제");
-    JButton refreshCircle = new JButton("새로고침");
-    JButton refreshStick = new JButton("새로고침");
-    static JLabel getDailyDateLbl = new JLabel();
-    JLabel getCircleDateLbl = new JLabel();
-    JLabel getStickDateLbl = new JLabel();
-
-    JPanel incomePanel;
-    JPanel incomeLblPanel;
-    static Vector incomeTable_Model_Vector;
-    static DefaultTableModel incomeTable_Model;
-    JTable incomeTable;
-    JScrollPane incomePane;
-
-    Object[][] rowData = new Object[0][4];
-    String[] columnTitle = {"시간", "항목 이름", "결제 수단", "항목", "금액"};
-
-    JPanel expensePanel;
-    JPanel expenseLblPanel;
-    static Vector expenseTable_Model_Vector;
-    static DefaultTableModel expenseTable_Model;
-    JTable expenseTable;
-    JScrollPane expensePane;
-
-    JPanel sumPanel;
-    JPanel sumLblPanel;
-    JLabel incomeLbl = new JLabel("수입 :");
-    JLabel expenseLbl = new JLabel("지출 :");
-    JLabel totalLbl = new JLabel("전체 :");
-    static JLabel incomeSum = new JLabel("0");
-    static JLabel expenseSum = new JLabel("0");
-    static JLabel totalSum = new JLabel("0");
-
-    static int totalIncomeSum = 0;
-    static String stringIncomeSum;
-    static int intIncomeSum;
-
-    static int totalExpenseSum = 0;
-    static String stringExpenseSum;
-    static int intExpenseSum;
-
-    /* 메모 패널 */
-    JPanel memoPanel;
-    JTextArea memoArea = new JTextArea("");
-    JScrollPane memoScroll = new JScrollPane();
-    JLabel getMemoDateLbl = new JLabel();
-    JLabel memoLbl = new JLabel("메모");
-    JButton saveMemoBtn = new JButton("저장");
-    JButton delMemoBtn = new JButton("삭제");
-    JButton editMemoBtn = new JButton("수정");
-
-    String memoContents = "";
 
     /* 생성자 */
     public Master() {
@@ -155,10 +153,18 @@ public class Master extends JFrame {
         MyPanel panel = new MyPanel();
         panel.setBounds(0, 0, Main.BIG_SCREEN_WIDTH, Main.BIG_SCREEN_HEIGHT);
 
+        // 프로필 패널
+        profilePanel.setBounds(0, 0, 1280, 40);
+        profilePanel.setOpaque(false);
+        profilePanel.setLayout(null);
+        layeredPane.add(profilePanel);
+
+        // 프로필 레이블
         showProfileLbl.setBounds(60, 15, 200, 30);
         showProfileLbl.setFont(new Font("DX빨간우체통B", Font.BOLD, 16));
         profilePanel.add(showProfileLbl);
 
+        // 로그아웃 버튼
         logoutBtn.setBounds(1150, 15, 90, 30);
         logoutBtn.setFont(new Font("DX빨간우체통B", Font.PLAIN, 12));
         logoutBtn.addMouseListener(new MouseAdapter() {
@@ -170,17 +176,14 @@ public class Master extends JFrame {
         });
         profilePanel.add(logoutBtn);
 
-        profilePanel.setBounds(0, 0, 1280, 40);
-        profilePanel.setOpaque(false);
-        profilePanel.setLayout(null);
-        layeredPane.add(profilePanel);
-
-        makeCalendar();
-        setToday();
+        /* 함수 시작 */
+        makeCalendar(); // 캘린더 만들기
+        setToday(); // 오늘 지정
         showCal(); // 달력을 표시
-        focusToday();
-        daily(); // 수입 / 지출 표시
+        focusToday(); // 오늘 포커스
+        daily(); // 수입과 지출 표시
 
+        /* 디비에서 데이터 불러오기 */
         getIncomeData(Start.getname, getDate);
         getExpenseData(Start.getname, getDate);
         getIncomeSum(Start.getname, getDate);
@@ -193,12 +196,14 @@ public class Master extends JFrame {
         setVisible(true);
     }
 
+    // 이미지를 위한 그래픽
     class MyPanel extends JPanel {
         public void paint(Graphics g) {
             g.drawImage(colorBackground, 0, 0, null);
         }
     }
 
+    // 달력 만드는 함수
     public void makeCalendar() {
         calTopPanel = new JPanel();
         calTopPanel.setOpaque(false);
@@ -211,24 +216,24 @@ public class Master extends JFrame {
         todayLbl = new JLabel(today.get(Calendar.MONTH) + 1 + "/" + today.get(Calendar.DAY_OF_MONTH) + "/" + today.get(Calendar.YEAR));
         todayLbl.setFont(new Font("DX빨간우체통B", Font.BOLD, 12));
 
-        lYearBtn = new JButton("<<");
-        lYearBtn.setToolTipText("Previous Year");
-        lYearBtn.addActionListener(lForCalOpButtons);
+        lastYearBtn = new JButton("<<");
+        lastYearBtn.setToolTipText("Previous Year");
+        lastYearBtn.addActionListener(lForCalOpButtons);
 
-        lMonthBtn = new JButton("<");
-        lMonthBtn.setToolTipText("Previous Month");
-        lMonthBtn.addActionListener(lForCalOpButtons);
+        lastMonthBtn = new JButton("<");
+        lastMonthBtn.setToolTipText("Previous Month");
+        lastMonthBtn.addActionListener(lForCalOpButtons);
 
-        currMMYYYYLbl = new JLabel("<html><table width=100><tr><th><font size=5>" + (today.get(Calendar.MONTH) + 1) + " / " + today.get(Calendar.YEAR) + "</th></tr></table></html>");
+        currMMYYYYLbl = new JLabel((today.get(Calendar.MONTH) + 1) + " / " + today.get(Calendar.YEAR));
         currMMYYYYLbl.setFont(new Font("DX빨간우체통B", Font.BOLD, 20));
 
-        nMonBtn = new JButton(">");
-        nMonBtn.setToolTipText("Next Month");
-        nMonBtn.addActionListener(lForCalOpButtons);
+        nextMonBtn = new JButton(">");
+        nextMonBtn.setToolTipText("Next Month");
+        nextMonBtn.addActionListener(lForCalOpButtons);
 
-        nYearBtn = new JButton(">>");
-        nYearBtn.setToolTipText("Next Year");
-        nYearBtn.addActionListener(lForCalOpButtons);
+        nextYearBtn = new JButton(">>");
+        nextYearBtn.setToolTipText("Next Year");
+        nextYearBtn.addActionListener(lForCalOpButtons);
 
         calTopPanel.setLayout(new GridBagLayout());
         GridBagConstraints calOpGC = new GridBagConstraints();
@@ -250,11 +255,11 @@ public class Master extends JFrame {
         calOpGC.gridwidth = 1;
         calOpGC.gridx = 1;
         calOpGC.gridy = 2;
-        calTopPanel.add(lYearBtn, calOpGC);
+        calTopPanel.add(lastYearBtn, calOpGC);
         calOpGC.gridwidth = 1;
         calOpGC.gridx = 2;
         calOpGC.gridy = 2;
-        calTopPanel.add(lMonthBtn, calOpGC);
+        calTopPanel.add(lastMonthBtn, calOpGC);
         calOpGC.gridwidth = 2;
         calOpGC.gridx = 3;
         calOpGC.gridy = 2;
@@ -262,11 +267,11 @@ public class Master extends JFrame {
         calOpGC.gridwidth = 1;
         calOpGC.gridx = 5;
         calOpGC.gridy = 2;
-        calTopPanel.add(nMonBtn, calOpGC);
+        calTopPanel.add(nextMonBtn, calOpGC);
         calOpGC.gridwidth = 1;
         calOpGC.gridx = 6;
         calOpGC.gridy = 2;
-        calTopPanel.add(nYearBtn, calOpGC);
+        calTopPanel.add(nextYearBtn, calOpGC);
 
         calPanel = new JPanel();
         calPanel.setOpaque(false);
@@ -311,6 +316,7 @@ public class Master extends JFrame {
         add(calendarPanel);
     }
 
+    // 오늘 날짜로 지정하는 함수
     public void setToday() {
         calYear = today.get(Calendar.YEAR);
         calMonth = today.get(Calendar.MONTH);
@@ -318,6 +324,7 @@ public class Master extends JFrame {
         makeCalData(today);
     }
 
+    // 달력 데이터 만드는 함수
     public void makeCalData(Calendar cal) {
         int calStartingPos = (cal.get(Calendar.DAY_OF_WEEK) + 7 - (cal.get(Calendar.DAY_OF_MONTH)) % 7) % 7;
         if (calMonth == 1) {
@@ -339,11 +346,13 @@ public class Master extends JFrame {
         }
     }
 
+    // 윤년 구하는 함수
     private int leapCheck(int year) {
         if (year % 4 == 0 && year % 100 != 0 || year % 400 == 0) return 1;
         else return 0;
     }
 
+    // 월별 혹은 연도별로 움직이는 함수
     public void moveMonth(int mon) {
         calMonth += mon;
         if (calMonth > 11) while (calMonth > 11) {
@@ -358,6 +367,7 @@ public class Master extends JFrame {
         makeCalData(cal);
     }
 
+    // 오늘을 포커스 하는 함수
     private void focusToday() {
         if (today.get(Calendar.DAY_OF_WEEK) == 1)
             dateBtns[today.get(Calendar.WEEK_OF_MONTH)][today.get(Calendar.DAY_OF_WEEK) - 1].requestFocusInWindow();
@@ -365,6 +375,7 @@ public class Master extends JFrame {
             dateBtns[today.get(Calendar.WEEK_OF_MONTH) - 1][today.get(Calendar.DAY_OF_WEEK) - 1].requestFocusInWindow();
     }
 
+    // 달력을 보여주는 함수
     private void showCal() {
         for (int i = 0; i < CAL_HEIGHT; i++) {
             for (int j = 0; j < CAL_WIDTH; j++) {
@@ -393,23 +404,35 @@ public class Master extends JFrame {
         }
     }
 
+    // 캘린더 버튼을 누를 때 발생하는 이벤트를 다루는 함수
     private class ListenForCalOpButtons implements ActionListener {
         public void actionPerformed(ActionEvent e) {
             if (e.getSource() == todayBtn) {
                 setToday();
                 lforDateBtns.actionPerformed(e);
                 focusToday();
-            } else if (e.getSource() == lYearBtn) moveMonth(-12);
-            else if (e.getSource() == lMonthBtn) moveMonth(-1);
-            else if (e.getSource() == nMonBtn) moveMonth(1);
-            else if (e.getSource() == nYearBtn) moveMonth(12);
+            } else if (e.getSource() == lastYearBtn) moveMonth(-12);
+            else if (e.getSource() == lastMonthBtn) moveMonth(-1);
+            else if (e.getSource() == nextMonBtn) moveMonth(1);
+            else if (e.getSource() == nextYearBtn) moveMonth(12);
 
-            currMMYYYYLbl.setText("<html><table width=100><tr><th><font size=5>" + ((calMonth + 1) < 10 ? "&nbsp;" : "") + (calMonth + 1) + " / " + calYear + "</th></tr></table></html>");
+            // 수입과 지출 화면을 위한 선택한 날짜 표시하기
+            currMMYYYYLbl.setText((calMonth + 1) + " / " + calYear);
             showCal();
+
+            // 원형 그래프를 위한 선택한 레이블
             getCircleDateLbl.setText((calMonth + 1) + "/" + calYear);
+
+            // 막대 그래프를 위한 선택한 레이블
             getStickDateLbl.setText((calMonth + 1) + "/" + calYear);
+
+            // 메모를 위한 선택한 레이블
             getMemoDateLbl.setText((calMonth + 1) + "/" + calDayOfMon + "/" + calYear);
+
+            // 수입과 지출을 위한 선택한 레이블
             getDailyDateLbl.setText((calMonth + 1) + "/" + calDayOfMon + "/" + calYear);
+
+            // 추가 페이지를 위해 선택한 날짜 가져오기
             getDate = (calYear + "/" + (calMonth + 1) + "/" + calDayOfMon);
 
             getIncomeData(Start.getname, getDate);
@@ -424,6 +447,7 @@ public class Master extends JFrame {
         }
     }
 
+    // 날짜를 누를 때 발생하는 이벤트를 다루는 함수
     private class listenforDateBtns implements ActionListener {
         public void actionPerformed(ActionEvent e) {
             int k = 0, l = 0;
@@ -496,7 +520,7 @@ public class Master extends JFrame {
             }
         }*/
 
-    // 가계부를 위한 탭 메뉴 정의
+    // 가계부를 위한 탭 메뉴 정의하는 함수
     public void daily() {
         jTabbedPane1 = new JTabbedPane(JTabbedPane.BOTTOM);
         jTabbedPane1_daily = new JPanel();
@@ -526,7 +550,7 @@ public class Master extends JFrame {
         daily_memo();
     }
 
-    // 날짜 표시 및 추가 버튼을 위한 패널
+    // 날짜 표시 및 추가 버튼을 위한 함수
     public void daily_date() {
         dailyPanel = new JPanel();
         dailyPanel.setLayout(null);
@@ -641,7 +665,7 @@ public class Master extends JFrame {
         stickPanel.add(refreshStick);
     }
 
-    // 수입을 위한 패널
+    // 수입 테이블을 만드는 함수
     public void daily_income() {
         incomePanel = new JPanel();
         incomePanel.setLayout(null);
@@ -681,7 +705,7 @@ public class Master extends JFrame {
 
     }
 
-    // 지출을 위한 패널
+    // 지출 테이블을 만드는 함수
     public void daily_expense() {
         expensePanel = new JPanel();
         expensePanel.setLayout(null);
@@ -720,7 +744,7 @@ public class Master extends JFrame {
         expensePanel.add(expensePane);
     }
 
-    // 수입합, 지출합, 전체합 보여주는 패널
+    // 수입의 합, 지출의 합, 전체 합을 위한 함수
     public void daily_total() {
         sumPanel = new JPanel();
         sumPanel.setLayout(null);
@@ -769,7 +793,7 @@ public class Master extends JFrame {
         sumPanel.add(totalSum);
     }
 
-    // 메모를 따로 볼 수 있게 해주는 패널
+    // 메모를 위한 함수
     public void daily_memo() {
         memoPanel = new JPanel();
         memoPanel.setLayout(null);
@@ -866,6 +890,7 @@ public class Master extends JFrame {
 
     }
 
+    // 수입 테이블 데이터를 불러오는 함수 (디비)
     public void getIncomeData(String name, String date) {
         // DB 연결 시도
         try {
@@ -906,6 +931,7 @@ public class Master extends JFrame {
         }
     }
 
+    // 지출 테이블 데이터를 불러오는 함수 (디비)
     public void getExpenseData(String name, String date) {
         // DB 연결 시도
         try {
@@ -947,6 +973,7 @@ public class Master extends JFrame {
         }
     }
 
+    // 수입의 합 데이터를 불러오는 함수 (디비)
     public void getIncomeSum(String name, String date) {
         // DB 연결 시도
         try {
@@ -977,6 +1004,7 @@ public class Master extends JFrame {
         totalIncomeSum = 0;
     }
 
+    // 지출의 합 데이터를 불러오는 함수 (디비)
     public void getExpenseSum(String name, String date) {
         // DB 연결 시도
         try {
@@ -1007,6 +1035,7 @@ public class Master extends JFrame {
         totalExpenseSum = 0;
     }
 
+    // 메모를 불러오는 함수 (디비)
     public void readMemo(String name, String date) {
         // DB 연결 시도
         try {
@@ -1034,6 +1063,7 @@ public class Master extends JFrame {
         }
     }
 
+    // 메모를 저장할 때 디비에 추가해야하는지 수정해야하는지 확인하는 함수
     public String checkMemo(String name, String date) {
         // DB 연결 시도
         try {
@@ -1061,6 +1091,7 @@ public class Master extends JFrame {
         return memoContents;
     }
 
+    // 디비 업데이트 (디비)
     public void updateDB(String addToDB) {
         // DB 연결 시도
         try {
