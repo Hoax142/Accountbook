@@ -411,7 +411,7 @@ public class Login extends JFrame {
         // DB 연결 시도
         try {
             Class.forName("com.mysql.jdbc.Driver"); // 1. 드라이버 로딩
-            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/Term_Project?serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true&useSSL=false", "root", "dhgusgh8520"); // 2. 드라이버 연결
+            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/accountbook_project?serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true&useSSL=false&autoReconnection=true", "root", "dhgusgh8520"); // 2. 드라이버 연결
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -440,7 +440,7 @@ public class Login extends JFrame {
         // DB 연결 시도
         try {
             Class.forName("com.mysql.jdbc.Driver"); // 1. 드라이버 로딩
-            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/Term_Project?serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true&useSSL=false", "root", "dhgusgh8520"); // 2. 드라이버 연결
+            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/accountbook_project?serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true&useSSL=false&autoReconnection=true", "root", "dhgusgh8520"); // 2. 드라이버 연결
             stmt = con.createStatement();
         } catch (Exception e) {
             e.printStackTrace();

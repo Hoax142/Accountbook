@@ -62,6 +62,8 @@ public class Master extends JFrame {
     listenforDateBtns lforDateBtns = new listenforDateBtns(); // 날짜 이동 버튼을 입력 했을 때 액션 함수
     private final String WEEK_DAY_NAME[] = {"SUN", "MON", "TUE", "WED", "THR", "FRI", "SAT"}; // 요일 이름 담은 배열
     static String getDate; // 날짜를 표시 하기 위한 레이블
+    private String getEndDate;
+    private String getFirstDate;
 
     /* 탭 패널 */
     private JTabbedPane jTabbedPane1; // 탭 패널
@@ -81,13 +83,13 @@ public class Master extends JFrame {
     private String[] columnTitle = {"시간", "항목 이름", "결제 수단", "항목", "금액"}; // 테이블 칼럼의 제목
     static Vector incomeTable_Model_Vector; // 수입 테이블을 위한 벡터
     static DefaultTableModel incomeTable_Model; // 수입 테이블을 위한 DefaultTableModel (추가 및 삭제를 위해)
-    private JTable incomeTable; // 수입 테이블
+    static JTable incomeTable; // 수입 테이블
     private JPanel expensePanel; // 지출을 위한 패널
     private JPanel expenseLblPanel; // 지출 단어를 위한 패널
     private JScrollPane expensePane; // 지출 테이블을 위한 스크롤 패널
     static Vector expenseTable_Model_Vector; // 지출 테이블을 위한 벡터
     static DefaultTableModel expenseTable_Model; // 지출 테이블을 위한 DefaultTableModel (추가 및 삭제를 위해)
-    private JTable expenseTable; // 지출 테이블
+    static JTable expenseTable; // 지출 테이블
     private JPanel sumPanel; // 합계를 위한 패널
     private JPanel sumLblPanel; // 합계 단어를 위한 패널
     private JLabel incomeLbl = new JLabel("수입 :"); // 수입 합계를 위한 레이블
@@ -100,18 +102,28 @@ public class Master extends JFrame {
     static String stringIncomeSum; // 디비에서 수입의 합을 구하기 위한 변수
     static int intIncomeSum; // 디비에서 수입의 함을 구하기 위한 변수
     static int totalExpenseSum = 0; // 디비에서 지출의 합을 구하기 위한 변수
-    static String stringExpenseSum;// 디비에서 지출의 합을 구하기 위한 변수
-    static int intExpenseSum;// 디비에서 지출의 합을 구하기 위한 변수
+    static String stringExpenseSum; // 디비에서 지출의 합을 구하기 위한 변수
+    static int intExpenseSum; // 디비에서 지출의 합을 구하기 위한 변수
+    static String stringTotalSum; // 디비에서 지출의 합을 구하기 위한 변수
+    static int intTotalSum; // 디비에서 지출의 합을 구하기 위한 변수
+    static int totalAmountSum = 0; // 디비에서 지출의 합을 구하기 위한 변수
 
     // 원형 그래프
     private JPanel circlePanel; // 원형 그래프 탭에서 날짜를 위한 패널
+    private JPanel circleGraphPanel; // 원형 그래프를 위한 패널
     private JButton refreshCircle = new JButton("새로고침");
     private JLabel getCircleDateLbl = new JLabel(); // 원형 그래프 패널에서 선택한 날짜를 보여줄 레이블
+    int arc1, arc2, arc3, arc4;
+    String stringTransportSum, stringPhoneSum, stringFoodSum, stringPersonalSum;
+    int monthlyExpenseTotal = 0, intTransportSum = 0, totalTransportSum = 0, intPhoneSum = 0, totalPhoneSum = 0, intFoodSum = 0, totalFoodSum = 0, intPersonalSum = 0, totalPersonalSum = 0;
+    int arc1Percentage, arc2Percentage, arc3Percentage, arc4Percentage;
+    DrawCircle drawCircle = new DrawCircle();
 
     // 막대 그래프
     private JPanel stickPanel; // 막대 그래프 탭에서 날짜를 위한 패널
     private JButton refreshStick = new JButton("새로고침");
     private JLabel getStickDateLbl = new JLabel(); // 막대 그래프 패널에서 선택한 날짜를 보여줄 레이블
+    DrawStick drawStick = new DrawStick();
 
     /* 메모 패널 */
     private JPanel memoPanel; // 메모를 위한 패널
@@ -184,12 +196,23 @@ public class Master extends JFrame {
         daily(); // 수입과 지출 표시
 
         /* 디비에서 데이터 불러오기 */
+        getDate = (today.get(Calendar.YEAR) + "/" + (today.get(Calendar.MONTH) + 1) + "/" + today.get(Calendar.DAY_OF_MONTH));
+
         getIncomeData(Start.getname, getDate);
         getExpenseData(Start.getname, getDate);
+
         getIncomeSum(Start.getname, getDate);
         getExpenseSum(Start.getname, getDate);
+        getTotalSum(Start.getname, getDate);
+
         readMemo(Start.getname, getDate);
-        totalSum.setText(Integer.toString(Integer.parseInt(incomeSum.getText()) - Integer.parseInt(expenseSum.getText())));
+
+        getFirstDate = (today.get(Calendar.YEAR) + "/" + (today.get(Calendar.MONTH) + 1) + "/" + "01");
+        getEndDate = (today.get(Calendar.YEAR) + "/" + (today.get(Calendar.MONTH) + 1) + "/" + today.getActualMaximum(Calendar.DAY_OF_MONTH));
+
+        getMonthlyExpense(Start.getname, getFirstDate, getEndDate);
+        drawCircle.repaint();
+        drawStick.repaint();
 
         layeredPane.add(panel);
         add(layeredPane);
@@ -210,29 +233,29 @@ public class Master extends JFrame {
 
         todayBtn = new JButton("Today");
         todayBtn.setFont(new Font("DX빨간우체통B", Font.PLAIN, 13));
-        todayBtn.setToolTipText("Today");
+        todayBtn.setToolTipText("오늘");
         todayBtn.addActionListener(lForCalOpButtons);
 
         todayLbl = new JLabel(today.get(Calendar.MONTH) + 1 + "/" + today.get(Calendar.DAY_OF_MONTH) + "/" + today.get(Calendar.YEAR));
         todayLbl.setFont(new Font("DX빨간우체통B", Font.BOLD, 12));
 
         lastYearBtn = new JButton("<<");
-        lastYearBtn.setToolTipText("Previous Year");
+        lastYearBtn.setToolTipText("이전 년도");
         lastYearBtn.addActionListener(lForCalOpButtons);
 
         lastMonthBtn = new JButton("<");
-        lastMonthBtn.setToolTipText("Previous Month");
+        lastMonthBtn.setToolTipText("이전 달");
         lastMonthBtn.addActionListener(lForCalOpButtons);
 
         currMMYYYYLbl = new JLabel((today.get(Calendar.MONTH) + 1) + " / " + today.get(Calendar.YEAR));
         currMMYYYYLbl.setFont(new Font("DX빨간우체통B", Font.BOLD, 20));
 
         nextMonBtn = new JButton(">");
-        nextMonBtn.setToolTipText("Next Month");
+        nextMonBtn.setToolTipText("다음 달");
         nextMonBtn.addActionListener(lForCalOpButtons);
 
         nextYearBtn = new JButton(">>");
-        nextYearBtn.setToolTipText("Next Year");
+        nextYearBtn.setToolTipText("다음 년도");
         nextYearBtn.addActionListener(lForCalOpButtons);
 
         calTopPanel.setLayout(new GridBagLayout());
@@ -281,9 +304,11 @@ public class Master extends JFrame {
             weekDaysName[i].setBorderPainted(false);
             weekDaysName[i].setContentAreaFilled(false);
             weekDaysName[i].setForeground(Color.WHITE);
+
             if (i == 0) weekDaysName[i].setBackground(new Color(200, 50, 50));
             else if (i == 6) weekDaysName[i].setBackground(new Color(50, 100, 200));
-            else weekDaysName[i].setBackground(new Color(150, 150, 150));
+            else weekDaysName[i].setBackground(new Color(170, 170, 170));
+
             weekDaysName[i].setOpaque(true);
             weekDaysName[i].setFocusPainted(false);
             weekDaysName[i].setFont(new Font("DX빨간우체통B", Font.PLAIN, 14));
@@ -292,7 +317,7 @@ public class Master extends JFrame {
         for (int i = 0; i < CAL_HEIGHT; i++) {
             for (int j = 0; j < CAL_WIDTH; j++) {
                 dateBtns[i][j] = new JButton();
-                dateBtns[i][j].setBorderPainted(false);
+                //dateBtns[i][j].setBorderPainted(false);
                 dateBtns[i][j].setContentAreaFilled(false);
                 dateBtns[i][j].setBackground(Color.WHITE);
                 dateBtns[i][j].setOpaque(true);
@@ -321,6 +346,7 @@ public class Master extends JFrame {
         calYear = today.get(Calendar.YEAR);
         calMonth = today.get(Calendar.MONTH);
         calDayOfMon = today.get(Calendar.DAY_OF_MONTH);
+
         makeCalData(today);
     }
 
@@ -355,13 +381,16 @@ public class Master extends JFrame {
     // 월별 혹은 연도별로 움직이는 함수
     public void moveMonth(int mon) {
         calMonth += mon;
-        if (calMonth > 11) while (calMonth > 11) {
-            calYear++;
-            calMonth -= 12;
-        }
-        else if (calMonth < 0) while (calMonth < 0) {
-            calYear--;
-            calMonth += 12;
+        if (calMonth > 11) {
+            while (calMonth > 11) {
+                calYear++;
+                calMonth -= 12;
+            }
+        } else if (calMonth < 0) {
+            while (calMonth < 0) {
+                calYear--;
+                calMonth += 12;
+            }
         }
         cal = new GregorianCalendar(calYear, calMonth, calDayOfMon);
         makeCalData(cal);
@@ -369,39 +398,48 @@ public class Master extends JFrame {
 
     // 오늘을 포커스 하는 함수
     private void focusToday() {
-        if (today.get(Calendar.DAY_OF_WEEK) == 1)
+        if (today.get(Calendar.DAY_OF_WEEK) == 1) {
             dateBtns[today.get(Calendar.WEEK_OF_MONTH)][today.get(Calendar.DAY_OF_WEEK) - 1].requestFocusInWindow();
-        else
+            dateBtns[today.get(Calendar.WEEK_OF_MONTH)][today.get(Calendar.DAY_OF_WEEK) - 1].setBackground(new Color(164, 151, 254));
+        } else {
             dateBtns[today.get(Calendar.WEEK_OF_MONTH) - 1][today.get(Calendar.DAY_OF_WEEK) - 1].requestFocusInWindow();
+            dateBtns[today.get(Calendar.WEEK_OF_MONTH) - 1][today.get(Calendar.DAY_OF_WEEK) - 1].setBackground(new Color(164, 151, 254));
+        }
     }
 
-    // 달력을 보여주는 함수
+    // 달력 숫자 채우고 "오늘"을 표시 해주는 함수
     private void showCal() {
         for (int i = 0; i < CAL_HEIGHT; i++) {
             for (int j = 0; j < CAL_WIDTH; j++) {
-                String fontColor = "black";
-                if (j == 0) fontColor = "red";
-                else if (j == 6) fontColor = "blue";
+                if (j == 0) {
+                    dateBtns[i][j].setForeground(Color.RED);
+                    dateBtns[i][j].setFont(new Font("DX빨간우체통B", Font.PLAIN, 13));
+                    dateBtns[i][j].setText(Integer.toString(calDates[i][j]));
+                } else if (j == 6) {
+                    dateBtns[i][j].setForeground(Color.BLUE);
+                    dateBtns[i][j].setFont(new Font("DX빨간우체통B", Font.PLAIN, 13));
+                    dateBtns[i][j].setText(Integer.toString(calDates[i][j]));
+                } else {
+                    dateBtns[i][j].setForeground(Color.BLACK);
+                    dateBtns[i][j].setFont(new Font("DX빨간우체통B", Font.PLAIN, 13));
+                    dateBtns[i][j].setText(Integer.toString(calDates[i][j]));
+                }
 
-                File f = new File("MemoData/" + calYear + ((calMonth + 1) < 10 ? "0" : "") + (calMonth + 1) + (calDates[i][j] < 10 ? "0" : "") + calDates[i][j] + ".txt");
-                if (f.exists()) {
-                    dateBtns[i][j].setText("<html><b><font color=" + fontColor + ">" + calDates[i][j] + "</font></b></html>");
-                } else
-                    dateBtns[i][j].setText("<html><font color=" + fontColor + ">" + calDates[i][j] + "</font></html>");
-
-                JLabel todayMark = new JLabel("<html><font color=green>*</html>");
-                dateBtns[i][j].removeAll();
+                // 오늘 날짜 표시하기
                 if (calMonth == today.get(Calendar.MONTH) &&
                         calYear == today.get(Calendar.YEAR) &&
                         calDates[i][j] == today.get(Calendar.DAY_OF_MONTH)) {
-                    dateBtns[i][j].add(todayMark);
-                    dateBtns[i][j].setToolTipText("Today");
+                    dateBtns[i][j].setBorder(BorderFactory.createLineBorder(new Color(164, 151, 254), 2, true)); // 테두리 색 입히기
+                } else {
+                    dateBtns[i][j].setBorder(BorderFactory.createEmptyBorder()); // 빈 테두리 만들기
                 }
 
                 if (calDates[i][j] == 0) dateBtns[i][j].setVisible(false);
                 else dateBtns[i][j].setVisible(true);
+
             }
         }
+
     }
 
     // 캘린더 버튼을 누를 때 발생하는 이벤트를 다루는 함수
@@ -411,39 +449,30 @@ public class Master extends JFrame {
                 setToday();
                 lforDateBtns.actionPerformed(e);
                 focusToday();
-            } else if (e.getSource() == lastYearBtn) moveMonth(-12);
-            else if (e.getSource() == lastMonthBtn) moveMonth(-1);
+            } else if (e.getSource() == lastYearBtn) {
+                moveMonth(-12);
+            } else if (e.getSource() == lastMonthBtn) moveMonth(-1);
             else if (e.getSource() == nextMonBtn) moveMonth(1);
             else if (e.getSource() == nextYearBtn) moveMonth(12);
+
+            getEndDate = calYear + "/" + (calMonth + 1) + "/" + cal.getActualMaximum(Calendar.DAY_OF_MONTH);
+            getFirstDate = (calYear + "/" + (calMonth + 1) + "/" + "01");
+
+            for (int i = 0; i < CAL_HEIGHT; i++) {
+                for (int j = 0; j < CAL_WIDTH; j++) {
+                    dateBtns[i][j].setBackground(Color.WHITE);
+                }
+            }
 
             // 수입과 지출 화면을 위한 선택한 날짜 표시하기
             currMMYYYYLbl.setText((calMonth + 1) + " / " + calYear);
             showCal();
 
-            // 원형 그래프를 위한 선택한 레이블
-            getCircleDateLbl.setText((calMonth + 1) + "/" + calYear);
+            getCircleDateLbl.setText((calMonth + 1) + " 월");
 
-            // 막대 그래프를 위한 선택한 레이블
-            getStickDateLbl.setText((calMonth + 1) + "/" + calYear);
-
-            // 메모를 위한 선택한 레이블
-            getMemoDateLbl.setText((calMonth + 1) + "/" + calDayOfMon + "/" + calYear);
-
-            // 수입과 지출을 위한 선택한 레이블
-            getDailyDateLbl.setText((calMonth + 1) + "/" + calDayOfMon + "/" + calYear);
-
-            // 추가 페이지를 위해 선택한 날짜 가져오기
-            getDate = (calYear + "/" + (calMonth + 1) + "/" + calDayOfMon);
-
-            getIncomeData(Start.getname, getDate);
-            getExpenseData(Start.getname, getDate);
-
-            getIncomeSum(Start.getname, getDate);
-            getExpenseSum(Start.getname, getDate);
-
-            readMemo(Start.getname, getDate);
-
-            totalSum.setText(Integer.toString(Integer.parseInt(incomeSum.getText()) - Integer.parseInt(expenseSum.getText())));
+            getMonthlyExpense(Start.getname, getFirstDate, getEndDate);
+            drawCircle.repaint();
+            drawStick.repaint();
         }
     }
 
@@ -453,16 +482,24 @@ public class Master extends JFrame {
             int k = 0, l = 0;
             for (int i = 0; i < CAL_HEIGHT; i++) {
                 for (int j = 0; j < CAL_WIDTH; j++) {
+                    dateBtns[i][j].setBackground(Color.WHITE);
                     if (e.getSource() == dateBtns[i][j]) {
                         k = i;
                         l = j;
+
+                        if (dateBtns[i][j] == dateBtns[k][l]) {
+                            dateBtns[k][l].setBackground(new Color(164, 151, 254));
+                        }
                     }
                 }
             }
 
-            if (!(k == 0 && l == 0)) calDayOfMon = calDates[k][l];
+            if (!(k == 0 && l == 0)) {
+                calDayOfMon = calDates[k][l];
+            }
 
             cal = new GregorianCalendar(calYear, calMonth, calDayOfMon);
+
             getDailyDateLbl.setText((calMonth + 1) + "/" + calDayOfMon + "/" + calYear);
             getMemoDateLbl.setText((calMonth + 1) + "/" + calDayOfMon + "/" + calYear);
             getDate = (calYear + "/" + (calMonth + 1) + "/" + calDayOfMon);
@@ -475,7 +512,7 @@ public class Master extends JFrame {
 
             readMemo(Start.getname, getDate);
 
-            totalSum.setText(Integer.toString(Integer.parseInt(incomeSum.getText()) - Integer.parseInt(expenseSum.getText())));
+            getTotalSum(Start.getname, getDate);
         }
     }
 
@@ -523,6 +560,7 @@ public class Master extends JFrame {
     // 가계부를 위한 탭 메뉴 정의하는 함수
     public void daily() {
         jTabbedPane1 = new JTabbedPane(JTabbedPane.BOTTOM);
+
         jTabbedPane1_daily = new JPanel();
         jTabbedPane1_daily.setLayout(null);
         jTabbedPane1_daily.setBackground(jTabbedPane1.getBackground());
@@ -539,7 +577,6 @@ public class Master extends JFrame {
         jTabbedPane1.add("원형 그래프(월)", jTabbedPane1_report_circle);
         jTabbedPane1.add("막대 그래프(월)", jTabbedPane1_report_stick);
 
-
         jTabbedPane1.setBounds(650, 50, 600, 600);
         add(jTabbedPane1);
 
@@ -555,20 +592,30 @@ public class Master extends JFrame {
         dailyPanel = new JPanel();
         dailyPanel.setLayout(null);
         dailyPanel.setBorder(new EtchedBorder());
-        dailyPanel.setBounds(0, 0, 600, 80);
+        dailyPanel.setBounds(1, 0, 579, 80);
         dailyPanel.setBackground(new Color(204, 204, 255));
 
         circlePanel = new JPanel();
         circlePanel.setLayout(null);
         circlePanel.setBorder(new EtchedBorder());
-        circlePanel.setBounds(0, 0, 600, 80);
+        circlePanel.setBounds(1, 0, 579, 80);
         circlePanel.setBackground(new Color(204, 204, 255));
+
+        drawCircle.setBounds(1, 80, 579, 475);
+        drawCircle.setLayout(null);
+        drawCircle.setBorder(new EtchedBorder());
+        jTabbedPane1_report_circle.add(drawCircle);
 
         stickPanel = new JPanel();
         stickPanel.setLayout(null);
         stickPanel.setBorder(new EtchedBorder());
-        stickPanel.setBounds(0, 0, 600, 80);
+        stickPanel.setBounds(1, 0, 579, 80);
         stickPanel.setBackground(new Color(204, 204, 255));
+
+        drawStick.setBounds(1, 80, 579, 475);
+        drawStick.setLayout(null);
+        drawStick.setBorder(new EtchedBorder(0));
+        jTabbedPane1_report_stick.add(drawStick);
 
         jTabbedPane1_daily.add(dailyPanel);
         jTabbedPane1_report_circle.add(circlePanel);
@@ -579,16 +626,14 @@ public class Master extends JFrame {
         getDailyDateLbl.setBounds(250, 20, 150, 35);
         dailyPanel.add(getDailyDateLbl);
 
-        getDate = (today.get(Calendar.YEAR) + "/" + (today.get(Calendar.MONTH) + 1) + "/" + today.get(Calendar.DAY_OF_MONTH));
-
-        getCircleDateLbl.setText((today.get(Calendar.MONTH) + 1) + "/" + today.get(Calendar.YEAR));
-        getCircleDateLbl.setFont(new Font("DX빨간우체통B", Font.BOLD, 18));
-        getCircleDateLbl.setBounds(270, 20, 150, 35);
+        getCircleDateLbl.setText((today.get(Calendar.MONTH) + 1) + " 월");
+        getCircleDateLbl.setFont(new Font("DX빨간우체통B", Font.BOLD, 20));
+        getCircleDateLbl.setBounds(270, 10, 150, 70);
         circlePanel.add(getCircleDateLbl);
 
-        getStickDateLbl.setText((today.get(Calendar.MONTH) + 1) + "/" + today.get(Calendar.YEAR));
-        getStickDateLbl.setFont(new Font("DX빨간우체통B", Font.BOLD, 18));
-        getStickDateLbl.setBounds(270, 20, 150, 35);
+        getStickDateLbl.setText((today.get(Calendar.MONTH) + 1) + " 월");
+        getStickDateLbl.setFont(new Font("DX빨간우체통B", Font.BOLD, 20));
+        getStickDateLbl.setBounds(270, 10, 150, 70);
         stickPanel.add(getStickDateLbl);
 
         addBtn.setFont(new Font("DX빨간우체통B", Font.BOLD, 12));
@@ -608,9 +653,6 @@ public class Master extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 int incomeTableSelected = incomeTable.getSelectedRow();
                 int expenseTableSelected = expenseTable.getSelectedRow();
-//                for (int i = 0; i < incomeTable.getColumnCount(); i++) {
-//                    System.out.print(incomeTable.getModel().getValueAt(incomeTableSelected, i) + "\t");
-//                }
                 if (incomeTableSelected >= 0) {
                     Object incomeTime = incomeTable.getModel().getValueAt(incomeTableSelected, 0);
                     String incomeTimeString = incomeTime.toString();
@@ -621,7 +663,7 @@ public class Master extends JFrame {
                         incomeTable_Model.removeRow(incomeTableSelected);
                         try {
                             Class.forName("com.mysql.jdbc.Driver"); // 1. 드라이버 로딩
-                            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/Term_Project?serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true&useSSL=false", "root", "dhgusgh8520"); // 2. 드라이버 연결
+                            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/accountbook_project?serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true&useSSL=false", "root", "dhgusgh8520"); // 2. 드라이버 연결
                         } catch (Exception f) {
                             f.printStackTrace();
                         }
@@ -640,7 +682,7 @@ public class Master extends JFrame {
                         expenseTable_Model.removeRow(expenseTableSelected);
                         try {
                             Class.forName("com.mysql.jdbc.Driver"); // 1. 드라이버 로딩
-                            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/Term_Project?serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true&useSSL=false", "root", "dhgusgh8520"); // 2. 드라이버 연결
+                            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/accountbook_project?serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true&useSSL=false", "root", "dhgusgh8520"); // 2. 드라이버 연결
                         } catch (Exception f) {
                             f.printStackTrace();
                         }
@@ -653,15 +695,30 @@ public class Master extends JFrame {
 
             }
         });
-
         dailyPanel.add(delBtn);
 
         refreshCircle.setFont(new Font("DX빨간우체통B", Font.BOLD, 12));
         refreshCircle.setBounds(500, 20, 70, 35);
+        refreshCircle.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                getExpenseData(Start.getname, getDate);
+                getMonthlyExpense(Start.getname, getFirstDate, getEndDate);
+                drawCircle.repaint();
+            }
+        });
         circlePanel.add(refreshCircle);
 
         refreshStick.setFont(new Font("DX빨간우체통B", Font.BOLD, 12));
         refreshStick.setBounds(500, 20, 70, 35);
+        refreshStick.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                getExpenseData(Start.getname, getDate);
+                getMonthlyExpense(Start.getname, getFirstDate, getEndDate);
+                drawStick.repaint();
+            }
+        });
         stickPanel.add(refreshStick);
     }
 
@@ -791,6 +848,10 @@ public class Master extends JFrame {
         totalSum.setBounds(460, 20, 100, 30);
         totalSum.setFont(new Font("DX빨간우체통B", Font.BOLD, 15));
         sumPanel.add(totalSum);
+
+        if (Integer.parseInt(totalSum.getText()) < 0) {
+            totalSum.setForeground(Color.RED);
+        }
     }
 
     // 메모를 위한 함수
@@ -890,12 +951,185 @@ public class Master extends JFrame {
 
     }
 
+    // 지출에 대한 원형 그래프
+    private class DrawCircle extends JPanel {
+
+        public void paintComponent(Graphics g) {
+
+            g.clearRect(0, 0, getWidth(), getHeight());
+
+            g.setColor(new Color(255, 101, 30));
+            g.fillArc(140, 70, 300, 300, 0, arc1);
+            g.setColor(new Color(66, 164, 82));
+            g.fillArc(140, 70, 300, 300, arc1, arc2);
+            g.setColor(new Color(24, 95, 255));
+            g.fillArc(140, 70, 300, 300, arc1 + arc2, arc3);
+            g.setColor(new Color(187, 6, 255));
+            g.fillArc(140, 70, 300, 300, arc1 + arc2 + arc3, 360 - (arc1 + arc2 + arc3));
+
+
+            g.setFont(new Font("DX빨간우체통B", Font.BOLD, 15));
+            g.setColor(new Color(255, 101, 30));
+            g.drawString("교통비 : "+Integer.toString(arc1Percentage) + "%", 80, 450);
+            g.setColor(new Color(66, 164, 82));
+            g.drawString("통신비 : "+Integer.toString(arc2Percentage) + "%", 190, 450);
+            g.setColor(new Color(24, 95, 255));
+            g.drawString("식  비 : "+Integer.toString(arc3Percentage) + "%", 310, 450);
+            g.setColor(new Color(187, 6, 255));
+            g.drawString("개  인 : "+Integer.toString(arc4Percentage) + "%", 420, 450);
+        }
+    }
+
+    // 지출에 대한 막대 그래프
+    private class DrawStick extends JPanel {
+
+        public void paintComponent(Graphics g) {
+
+            g.clearRect(0, 0, getWidth(), getHeight());
+
+            g.drawLine(100, 350, 500, 350); // 가로
+
+            for (int i = 1; i < 6; i++) {
+                g.setColor(Color.BLACK);
+                g.drawString(i * 20 + "", 60, 355 - 50 * i);
+                g.setColor(Color.LIGHT_GRAY);
+                g.drawLine(100, 350 - 50 * i, 500, 350 - 50 * i);
+            }
+
+            g.setColor(Color.BLACK);
+            g.drawLine(100, 100, 100, 350); // 세로
+
+            g.setColor(new Color(255, 101, 30));
+            g.fillRect(130,350-arc1Percentage*5/2,50,arc1Percentage*5/2);
+            g.setColor(new Color(66, 164, 82));
+            g.fillRect(230,350-arc2Percentage*5/2,50,arc2Percentage*5/2);
+            g.setColor(new Color(24, 95, 255));
+            g.fillRect(330,350-arc3Percentage*5/2,50,arc3Percentage*5/2);
+            g.setColor(new Color(187, 6, 255));
+            g.fillRect(430,350-arc4Percentage*5/2,50,arc4Percentage*5/2);
+
+            g.setFont(new Font("DX빨간우체통B", Font.BOLD, 15));
+            g.setColor(new Color(255, 101, 30));
+            g.drawString("교통비",135,370);
+            g.setColor(new Color(66, 164, 82));
+            g.drawString("통신비",235,370);
+            g.setColor(new Color(24, 95, 255));
+            g.drawString("식  비",335,370);
+            g.setColor(new Color(187, 6, 255));
+            g.drawString("개  인",435,370);
+        }
+    }
+
+    // 선택 달의 지출의 전체 합 구하기 및 각 항목별 합 (디비)
+    public void getMonthlyExpense(String name, String startDate, String lastDate) {
+        // DB 연결 시도
+        try {
+            Class.forName("com.mysql.jdbc.Driver"); // 1. 드라이버 로딩
+            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/accountbook_project?serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true&useSSL=false&autoReconnection=true", "root", "dhgusgh8520"); // 2. 드라이버 연결
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        monthlyExpenseTotal = 0;
+        totalTransportSum = 0;
+        totalPhoneSum = 0;
+        totalFoodSum = 0;
+        totalPersonalSum = 0;
+        arc1 = 0;
+        arc2 = 0;
+        arc3 = 0;
+        arc4 = 0;
+        arc1Percentage = 0;
+        arc2Percentage = 0;
+        arc3Percentage = 0;
+        arc4Percentage = 0;
+
+        String SQL1 = "SELECT * FROM accountbook WHERE username=? AND incomeexpense = '지출' AND date_format(NOW(), ?) <= DATE(inputdate) AND DATE(inputdate) <= date_format(NOW(), ?) AND itemtype = '교통'";
+        try {
+            ps = con.prepareStatement(SQL1);
+            ps.setString(1, name);
+            ps.setString(2, startDate);
+            ps.setString(3, lastDate);
+            rs = ps.executeQuery();
+            while (rs.next()) {
+                stringTransportSum = rs.getString("amount");
+                intTransportSum = Integer.parseInt(stringTransportSum);
+                totalTransportSum += intTransportSum;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        String SQL2 = "SELECT * FROM accountbook WHERE username=? AND incomeexpense = '지출' AND date_format(NOW(), ?) <= DATE(inputdate) AND DATE(inputdate) <= date_format(NOW(), ?) AND itemtype = '통신'";
+        try {
+            ps = con.prepareStatement(SQL2);
+            ps.setString(1, name);
+            ps.setString(2, startDate);
+            ps.setString(3, lastDate);
+            rs = ps.executeQuery();
+            while (rs.next()) {
+                stringPhoneSum = rs.getString("amount");
+                intPhoneSum = Integer.parseInt(stringPhoneSum);
+                totalPhoneSum += intPhoneSum;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        String SQL3 = "SELECT * FROM accountbook WHERE username=? AND incomeexpense = '지출' AND date_format(NOW(), ?) <= DATE(inputdate) AND DATE(inputdate) <= date_format(NOW(), ?) AND itemtype = '식비'";
+        try {
+            ps = con.prepareStatement(SQL3);
+            ps.setString(1, name);
+            ps.setString(2, startDate);
+            ps.setString(3, lastDate);
+            rs = ps.executeQuery();
+            while (rs.next()) {
+                stringFoodSum = rs.getString("amount");
+                intFoodSum = Integer.parseInt(stringFoodSum);
+                totalFoodSum += intFoodSum;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        String SQL4 = "SELECT * FROM accountbook WHERE username=? AND incomeexpense = '지출' AND date_format(NOW(), ?) <= DATE(inputdate) AND DATE(inputdate) <= date_format(NOW(), ?) AND itemtype = '개인'";
+        try {
+            ps = con.prepareStatement(SQL4);
+            ps.setString(1, name);
+            ps.setString(2, startDate);
+            ps.setString(3, lastDate);
+            rs = ps.executeQuery();
+            while (rs.next()) {
+                stringPersonalSum = rs.getString("amount");
+                intPersonalSum = Integer.parseInt(stringPersonalSum);
+                totalPersonalSum += intPersonalSum;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        monthlyExpenseTotal = totalTransportSum + totalPhoneSum + totalFoodSum + totalPersonalSum;
+        if (monthlyExpenseTotal == 0) {
+            return;
+        }
+
+        arc1 = (int) 360.0 * totalTransportSum / monthlyExpenseTotal;
+        arc2 = (int) 360.0 * totalPhoneSum / monthlyExpenseTotal;
+        arc3 = (int) 360.0 * totalFoodSum / monthlyExpenseTotal;
+        arc4 = (int) 360.0 * totalPersonalSum / monthlyExpenseTotal;
+
+        arc1Percentage = 100 * totalTransportSum / monthlyExpenseTotal;
+        arc2Percentage = 100 * totalPhoneSum / monthlyExpenseTotal;
+        arc3Percentage = 100 * totalFoodSum / monthlyExpenseTotal;
+        arc4Percentage = 100 * totalPersonalSum / monthlyExpenseTotal;
+    }
+
     // 수입 테이블 데이터를 불러오는 함수 (디비)
     public void getIncomeData(String name, String date) {
         // DB 연결 시도
         try {
             Class.forName("com.mysql.jdbc.Driver"); // 1. 드라이버 로딩
-            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/Term_Project?serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true&useSSL=false", "root", "dhgusgh8520"); // 2. 드라이버 연결
+            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/accountbook_project?serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true&useSSL=false&autoReconnection=true", "root", "dhgusgh8520"); // 2. 드라이버 연결
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -914,6 +1148,10 @@ public class Master extends JFrame {
                 String itemtype = rs.getString("itemtype");
                 String amount = rs.getString("amount");
 
+                incomeTable.setAutoCreateRowSorter(true);
+                TableRowSorter sorter = new TableRowSorter(incomeTable.getModel());
+                incomeTable.setRowSorter(sorter);
+
                 incomeTable_Model_Vector = new Vector();
                 incomeTable_Model_Vector.add(inputtime);
                 incomeTable_Model_Vector.add(itemname);
@@ -921,10 +1159,6 @@ public class Master extends JFrame {
                 incomeTable_Model_Vector.add(itemtype);
                 incomeTable_Model_Vector.add(amount);
                 incomeTable_Model.addRow(incomeTable_Model_Vector);
-
-                incomeTable.setAutoCreateRowSorter(true);
-                TableRowSorter sorter = new TableRowSorter(incomeTable.getModel());
-                incomeTable.setRowSorter(sorter);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -936,7 +1170,7 @@ public class Master extends JFrame {
         // DB 연결 시도
         try {
             Class.forName("com.mysql.jdbc.Driver"); // 1. 드라이버 로딩
-            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/Term_Project?serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true&useSSL=false", "root", "dhgusgh8520"); // 2. 드라이버 연결
+            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/accountbook_project?serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true&useSSL=false&autoReconnection=true", "root", "dhgusgh8520"); // 2. 드라이버 연결
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -955,6 +1189,10 @@ public class Master extends JFrame {
                 String itemtype = rs.getString("itemtype");
                 String amount = rs.getString("amount");
 
+                expenseTable.setAutoCreateRowSorter(true);
+                TableRowSorter sorter = new TableRowSorter(expenseTable.getModel());
+                expenseTable.setRowSorter(sorter);
+
                 expenseTable_Model_Vector = new Vector();
                 expenseTable_Model_Vector.add(inputtime);
                 expenseTable_Model_Vector.add(itemname);
@@ -962,10 +1200,6 @@ public class Master extends JFrame {
                 expenseTable_Model_Vector.add(itemtype);
                 expenseTable_Model_Vector.add(amount);
                 expenseTable_Model.addRow(expenseTable_Model_Vector);
-
-                expenseTable.setAutoCreateRowSorter(true);
-                TableRowSorter sorter = new TableRowSorter(expenseTable.getModel());
-                expenseTable.setRowSorter(sorter);
 
             }
         } catch (Exception e) {
@@ -978,7 +1212,7 @@ public class Master extends JFrame {
         // DB 연결 시도
         try {
             Class.forName("com.mysql.jdbc.Driver"); // 1. 드라이버 로딩
-            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/Term_Project?serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true&useSSL=false", "root", "dhgusgh8520"); // 2. 드라이버 연결
+            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/accountbook_project?serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true&useSSL=false&autoReconnection=true", "root", "dhgusgh8520"); // 2. 드라이버 연결
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -996,7 +1230,12 @@ public class Master extends JFrame {
                 stringIncomeSum = rs.getString("amount");
                 intIncomeSum = Integer.parseInt(stringIncomeSum);
                 totalIncomeSum += intIncomeSum;
-                incomeSum.setText(Integer.toString(totalIncomeSum));
+                if (totalIncomeSum == 0) {
+                    incomeSum.setText(Integer.toString(totalIncomeSum));
+                } else {
+                    incomeSum.setText(Integer.toString(totalIncomeSum) + "원");
+                }
+
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -1009,7 +1248,7 @@ public class Master extends JFrame {
         // DB 연결 시도
         try {
             Class.forName("com.mysql.jdbc.Driver"); // 1. 드라이버 로딩
-            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/Term_Project?serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true&useSSL=false", "root", "dhgusgh8520"); // 2. 드라이버 연결
+            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/accountbook_project?serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true&useSSL=false&autoReconnection=true", "root", "dhgusgh8520"); // 2. 드라이버 연결
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -1027,7 +1266,11 @@ public class Master extends JFrame {
                 stringExpenseSum = rs.getString("amount");
                 intExpenseSum = Integer.parseInt(stringExpenseSum);
                 totalExpenseSum += intExpenseSum;
-                expenseSum.setText(Integer.toString(totalExpenseSum));
+                if (totalExpenseSum == 0) {
+                    expenseSum.setText(Integer.toString(totalExpenseSum));
+                } else {
+                    expenseSum.setText(Integer.toString(totalExpenseSum) + "원");
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -1035,12 +1278,46 @@ public class Master extends JFrame {
         totalExpenseSum = 0;
     }
 
+    // 전체의 합 데이터를 불러오는 함수 (디비)
+    public void getTotalSum(String name, String date) {
+        // 디비 연결 시도
+        try {
+            Class.forName("com.mysql.jdbc.Driver"); // 1. 드라이버 로딩
+            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/accountbook_project?serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true&useSSL=false&autoReconnection=true", "root", "dhgusgh8520"); // 2. 드라이버 연결
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        String SQL = "SELECT * FROM accountbook WHERE username=? AND inputdate=?";
+        try {
+            ps = con.prepareStatement(SQL);
+            ps.setString(1, name);
+            ps.setString(2, date);
+            rs = ps.executeQuery();
+            if (expenseTable_Model.getRowCount() == 0 && incomeTable_Model.getRowCount() == 0) {
+                totalSum.setText("0");
+            }
+            while (rs.next()) {
+                stringTotalSum = rs.getString("amount");
+                intTotalSum = Integer.parseInt(stringTotalSum);
+                totalAmountSum += intTotalSum;
+                if (totalAmountSum == 0) {
+                    totalSum.setText(Integer.toString(totalAmountSum));
+                } else {
+                    totalSum.setText(Integer.toString(totalAmountSum) + "원");
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        totalAmountSum = 0;
+    }
+
     // 메모를 불러오는 함수 (디비)
     public void readMemo(String name, String date) {
         // DB 연결 시도
         try {
             Class.forName("com.mysql.jdbc.Driver"); // 1. 드라이버 로딩
-            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/Term_Project?serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true&useSSL=false", "root", "dhgusgh8520"); // 2. 드라이버 연결
+            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/accountbook_project?serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true&useSSL=false&autoReconnection=true", "root", "dhgusgh8520"); // 2. 드라이버 연결
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -1068,7 +1345,7 @@ public class Master extends JFrame {
         // DB 연결 시도
         try {
             Class.forName("com.mysql.jdbc.Driver"); // 1. 드라이버 로딩
-            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/Term_Project?serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true&useSSL=false", "root", "dhgusgh8520"); // 2. 드라이버 연결
+            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/accountbook_project?serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true&useSSL=false&autoReconnection=true", "root", "dhgusgh8520"); // 2. 드라이버 연결
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -1096,7 +1373,7 @@ public class Master extends JFrame {
         // DB 연결 시도
         try {
             Class.forName("com.mysql.jdbc.Driver"); // 1. 드라이버 로딩
-            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/Term_Project?serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true&useSSL=false", "root", "dhgusgh8520"); // 2. 드라이버 연결
+            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/accountbook_project?serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true&useSSL=false&autoReconnection=true", "root", "dhgusgh8520"); // 2. 드라이버 연결
             stmt = con.createStatement();
         } catch (Exception e) {
             e.printStackTrace();

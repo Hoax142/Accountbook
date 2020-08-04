@@ -1,7 +1,7 @@
 package codes;
 
 /**
- * main 클래스
+ *main 클래스
  * 화면의 크기를 고정
  */
 

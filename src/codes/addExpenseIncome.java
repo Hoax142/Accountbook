@@ -7,6 +7,11 @@ package codes;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.table.TableRowSorter;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.DocumentFilter;
+import javax.swing.text.PlainDocument;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
@@ -150,6 +155,10 @@ public class addExpenseIncome extends JFrame {
                     hourTxt.setBackground(Color.WHITE);
                     minTxt.setBackground(Color.WHITE);
                     secTxt.setBackground(Color.WHITE);
+                    hourTxt.setText("");
+                    minTxt.setText("");
+                    secTxt.setText("");
+                    hourTxt.requestFocus();
                 } else {
                     useTimeLbl.setVisible(false);
                     useCustomTimeLbl.setVisible(true);
@@ -180,6 +189,28 @@ public class addExpenseIncome extends JFrame {
         hourTxt.setBackground(Color.LIGHT_GRAY);
         hourTxt.setHorizontalAlignment(JTextField.CENTER);
         hourTxt.setBorder(javax.swing.BorderFactory.createEmptyBorder());
+        hourTxt.addKeyListener(new KeyAdapter() {
+            @Override
+            //숫자만 입력 가능
+            public void keyTyped(KeyEvent e) {
+                char c = e.getKeyChar();
+                if (!Character.isDigit(c)) {
+                    e.consume();
+                    return;
+                }
+            }
+        });
+        PlainDocument document1 = (PlainDocument) hourTxt.getDocument();
+        // 입력 가능한 숫자 2개로 제한
+        document1.setDocumentFilter(new DocumentFilter() {
+            @Override
+            public void replace(DocumentFilter.FilterBypass fb, int offset, int length, String text, AttributeSet attrs) throws BadLocationException {
+                String string = fb.getDocument().getText(0, fb.getDocument().getLength()) + text;
+                if (string.length() <= 2) {
+                    super.replace(fb, offset, length, text, attrs);
+                }
+            }
+        });
         layeredPane.add(hourTxt);
 
         // 시 레이블
@@ -195,6 +226,28 @@ public class addExpenseIncome extends JFrame {
         minTxt.setBackground(Color.LIGHT_GRAY);
         minTxt.setHorizontalAlignment(JTextField.CENTER);
         minTxt.setBorder(javax.swing.BorderFactory.createEmptyBorder());
+        minTxt.addKeyListener(new KeyAdapter() {
+            @Override
+            // 숫자만 입력 가능
+            public void keyTyped(KeyEvent e) {
+                char c = e.getKeyChar();
+                if (!Character.isDigit(c)) {
+                    e.consume();
+                    return;
+                }
+            }
+        });
+        PlainDocument document2 = (PlainDocument) minTxt.getDocument();
+        // 입력 가능한 숫자 2개로 제한
+        document2.setDocumentFilter(new DocumentFilter() {
+            @Override
+            public void replace(DocumentFilter.FilterBypass fb, int offset, int length, String text, AttributeSet attrs) throws BadLocationException {
+                String string = fb.getDocument().getText(0, fb.getDocument().getLength()) + text;
+                if (string.length() <= 2) {
+                    super.replace(fb, offset, length, text, attrs);
+                }
+            }
+        });
         layeredPane.add(minTxt);
 
         // 분 레이블
@@ -210,6 +263,28 @@ public class addExpenseIncome extends JFrame {
         secTxt.setBackground(Color.LIGHT_GRAY);
         secTxt.setHorizontalAlignment(JTextField.CENTER);
         secTxt.setBorder(javax.swing.BorderFactory.createEmptyBorder());
+        secTxt.addKeyListener(new KeyAdapter() {
+            @Override
+            // 숫자만 입력 가능
+            public void keyTyped(KeyEvent e) {
+                char c = e.getKeyChar();
+                if (!Character.isDigit(c)) {
+                    e.consume();
+                    return;
+                }
+            }
+        });
+        PlainDocument document3 = (PlainDocument) secTxt.getDocument();
+        // 입력 가능한 숫자 2개로 제한
+        document3.setDocumentFilter(new DocumentFilter() {
+            @Override
+            public void replace(DocumentFilter.FilterBypass fb, int offset, int length, String text, AttributeSet attrs) throws BadLocationException {
+                String string = fb.getDocument().getText(0, fb.getDocument().getLength()) + text;
+                if (string.length() <= 2) {
+                    super.replace(fb, offset, length, text, attrs);
+                }
+            }
+        });
         layeredPane.add(secTxt);
 
         // 초 레이블
@@ -302,6 +377,16 @@ public class addExpenseIncome extends JFrame {
         amountTxt.setFont(new Font("DX빨간우체통B", Font.BOLD, 15));
         amountTxt.setHorizontalAlignment(JTextField.CENTER);
         amountTxt.setBorder(javax.swing.BorderFactory.createEmptyBorder());
+        amountTxt.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyTyped(KeyEvent e) {
+                char c = e.getKeyChar();
+                if (!Character.isDigit(c)) {
+                    e.consume();
+                    return;
+                }
+            }
+        });
         layeredPane.add(amountTxt);
 
         // 추가 버튼
@@ -314,7 +399,6 @@ public class addExpenseIncome extends JFrame {
                 getMin = minTxt.getText();
                 getSec = secTxt.getText();
                 getTime = (getHrs + ":" + getMin + ":" + getSec); // 시:분:토 형식
-                // -> 위 세개 하나로 묵고 아래 디비 저장값에 집어 넣
 
                 // 수입/지출 인지 값 저장
                 if (cardRadioBtn.isSelected() == true) {
@@ -342,6 +426,11 @@ public class addExpenseIncome extends JFrame {
                     Master.incomeTable_Model_Vector.add(getComboBoxItem);
                     Master.incomeTable_Model_Vector.add(amountTxt.getText());
                     Master.incomeTable_Model.addRow(Master.incomeTable_Model_Vector);
+
+                    Master.incomeTable.setAutoCreateRowSorter(true);
+                    TableRowSorter sorter = new TableRowSorter(Master.incomeTable.getModel());
+                    Master.incomeTable.setRowSorter(sorter);
+
                     updateIncome(Start.getname, Master.getDate);
                 } else {
                     Master.expenseTable_Model_Vector = new Vector();
@@ -351,6 +440,11 @@ public class addExpenseIncome extends JFrame {
                     Master.expenseTable_Model_Vector.add(getComboBoxItem);
                     Master.expenseTable_Model_Vector.add(amountTxt.getText());
                     Master.expenseTable_Model.addRow(Master.expenseTable_Model_Vector);
+
+                    Master.expenseTable.setAutoCreateRowSorter(true);
+                    TableRowSorter sorter = new TableRowSorter(Master.expenseTable.getModel());
+                    Master.expenseTable.setRowSorter(sorter);
+
                     updateExpense(Start.getname, Master.getDate);
                 }
                 dispose();
@@ -385,7 +479,7 @@ public class addExpenseIncome extends JFrame {
         // DB 연결 시도
         try {
             Class.forName("com.mysql.jdbc.Driver"); // 1. 드라이버 로딩
-            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/Term_Project?serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true&useSSL=false", "root", "dhgusgh8520"); // 2. 드라이버 연결
+            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/accountbook_project?serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true&useSSL=false&autoReconnection=true", "root", "dhgusgh8520"); // 2. 드라이버 연결
             stmt = con.createStatement();
         } catch (Exception e) {
             e.printStackTrace();
@@ -403,7 +497,7 @@ public class addExpenseIncome extends JFrame {
         // DB 연결 시도
         try {
             Class.forName("com.mysql.jdbc.Driver"); // 1. 드라이버 로딩
-            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/Term_Project?serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true&useSSL=false", "root", "dhgusgh8520"); // 2. 드라이버 연결
+            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/accountbook_project?serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true&useSSL=false&autoReconnection=true", "root", "dhgusgh8520"); // 2. 드라이버 연결
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -434,7 +528,7 @@ public class addExpenseIncome extends JFrame {
         // DB 연결 시도
         try {
             Class.forName("com.mysql.jdbc.Driver"); // 1. 드라이버 로딩
-            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/Term_Project?serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true&useSSL=false", "root", "dhgusgh8520"); // 2. 드라이버 연결
+            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/accountbook_project?serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true&useSSL=false&autoReconnection=true", "root", "dhgusgh8520"); // 2. 드라이버 연결
         } catch (Exception e) {
             e.printStackTrace();
         }
