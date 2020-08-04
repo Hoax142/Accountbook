@@ -21,7 +21,10 @@ import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 
 public class Start extends JFrame {
 
@@ -59,9 +62,10 @@ public class Start extends JFrame {
         //이미지 배경화면 불러오기
         try {
             loginImg = ImageIO.read(new File("images/startBackground2.png"));
+
         } catch (IOException e) {
             System.out.println("Image Error");
-            System.exit(0);
+            //System.exit(0);
         }
 
         MyPanel panel = new MyPanel();
@@ -115,7 +119,7 @@ public class Start extends JFrame {
             public void keyPressed(KeyEvent e) {
                 // 패스워드 택스트 필드에서 엔터키로 로그인
                 int enterkey = e.getKeyChar();
-                if(enterkey == KeyEvent.VK_ENTER) {
+                if (enterkey == KeyEvent.VK_ENTER) {
                     char[] pass = passTxt.getPassword();
                     String passString = new String(pass);
                     int result = checkLogin(idTxt.getText(), passString);
@@ -156,7 +160,7 @@ public class Start extends JFrame {
             @Override
             public void keyTyped(KeyEvent e) {
                 int enterkey = e.getKeyChar();
-                if(enterkey == KeyEvent.VK_ENTER) {
+                if (enterkey == KeyEvent.VK_ENTER) {
                     char[] pass = passTxt.getPassword();
                     String passString = new String(pass);
                     int result = checkLogin(idTxt.getText(), passString);
@@ -225,7 +229,6 @@ public class Start extends JFrame {
         layeredPane.add(loginBtn);
 
         // 회원가입 레이블
-        // "회원가입 하기" 레이블
         JLabel createAccountLbl = new JLabel("회원가입  하기");
         createAccountLbl.setBounds(610, 590, 100, 40);
         createAccountLbl.setFont(new Font("DX빨간우체통B", Font.BOLD, 14));
@@ -327,5 +330,4 @@ public class Start extends JFrame {
         }
     }
 }
-
 

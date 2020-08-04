@@ -134,7 +134,7 @@ public class Master extends JFrame {
             colorBackground = ImageIO.read(new File("images/background.png"));
         } catch (IOException e) {
             System.out.println("ERROR");
-            System.exit(0);
+            //System.exit(0);
         }
 
         MyPanel panel = new MyPanel();
