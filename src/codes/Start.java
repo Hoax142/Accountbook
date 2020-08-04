@@ -29,18 +29,10 @@ public class Start extends JFrame {
     private BufferedImage loginImg = null; // 이미지 저장 하기 위한 객체
 
     /* 아이디 */
-    private JLabel idLbl = new JLabel(" 아  이  디"); // 아이디 레이블
-    private JTextField idTxt = new JTextField(15); // 아이디 입력 텍스트 필드
+    private final JTextField idTxt = new JTextField(15); // 아이디 입력 텍스트 필드
 
     /* 비밀번호 */
-    private JLabel passLbl = new JLabel("비 밀 번 호"); // 비밀번호 레이블
-    private JPasswordField passTxt = new JPasswordField(15); // 비밀번호 입력 텍스트 필드
-
-    /* 회원가입 */
-    private JLabel createAccountLbl = new JLabel("회원가입  하기"); // "회원가입 하기" 레이블
-
-    /* 로그인 */
-    private JButton loginBtn = new JButton("로  그  인"); // 이미지로 대체
+    private final JPasswordField passTxt = new JPasswordField(15); // 비밀번호 입력 텍스트 필드
 
     /* 변수 */
     public static String getname; // 다른 클래스에서 사용 할 수 있도록 이름 저장
@@ -76,6 +68,7 @@ public class Start extends JFrame {
         panel.setBounds(0, 0, Main.BIG_SCREEN_WIDTH, Main.BIG_SCREEN_HEIGHT);
 
         // 아이디 레이블
+        JLabel idLbl = new JLabel(" 아  이  디");
         idLbl.setBounds(520, 400, 80, 30);
         idLbl.setFont(new Font("DX빨간우체통B", Font.BOLD, 16));
         layeredPane.add(idLbl);
@@ -97,6 +90,7 @@ public class Start extends JFrame {
         layeredPane.add(idTxt);
 
         // 비밀번호 레이블
+        JLabel passLbl = new JLabel("비 밀 번 호");
         passLbl.setBounds(520, 460, 80, 30);
         passLbl.setFont(new Font("DX빨간우체통B", Font.BOLD, 16));
         layeredPane.add(passLbl);
@@ -156,7 +150,44 @@ public class Start extends JFrame {
         layeredPane.add(passTxt);
 
         // 로그인 버튼
+        JButton loginBtn = new JButton("로  그  인");
         loginBtn.setBounds(600, 540, 100, 40);
+        loginBtn.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyTyped(KeyEvent e) {
+                int enterkey = e.getKeyChar();
+                if(enterkey == KeyEvent.VK_ENTER) {
+                    char[] pass = passTxt.getPassword();
+                    String passString = new String(pass);
+                    int result = checkLogin(idTxt.getText(), passString);
+                    // 로그인 성공
+                    if (result == 1) {
+                        JOptionPane.showMessageDialog(null, "로그인 성공", "SYSTEM MESSAGE", JOptionPane.DEFAULT_OPTION);
+                        getName(idTxt.getText()); // 로그인 한 사람의 이름 가져오기
+                        getAlias(idTxt.getText()); // 로그인 한 사람의 별명 가져오기
+                        dispose();
+                        new Master();
+                    }
+                    // 비밀번호 불일치
+                    else if (result == 0) {
+                        JOptionPane.showMessageDialog(null, "비밀번호를 확인해주세요", "SYSTEM MESSAGE", JOptionPane.ERROR_MESSAGE);
+                        passTxt.setText("");
+                    }
+                    // 없는 아이디
+                    else if (result == -1) {
+                        JOptionPane.showMessageDialog(null, "아이디를 확인해주세요", "SYSTEM MESSAGE", JOptionPane.ERROR_MESSAGE);
+                        idTxt.setText("");
+                        passTxt.setText("");
+                        idTxt.requestFocus();
+                    }
+                    // DB 오류
+                    else if (result == -2) {
+                        JOptionPane.showMessageDialog(null, "DB 오류가 발생했습니다.", "MESSAGE", JOptionPane.ERROR_MESSAGE);
+                        System.exit(0);
+                    }
+                }
+            }
+        });
         loginBtn.addMouseListener(new MouseAdapter() {
             @Override
             // 로그인 시도
@@ -194,6 +225,8 @@ public class Start extends JFrame {
         layeredPane.add(loginBtn);
 
         // 회원가입 레이블
+        // "회원가입 하기" 레이블
+        JLabel createAccountLbl = new JLabel("회원가입  하기");
         createAccountLbl.setBounds(610, 590, 100, 40);
         createAccountLbl.setFont(new Font("DX빨간우체통B", Font.BOLD, 14));
         createAccountLbl.setForeground(Color.GRAY);
@@ -249,7 +282,7 @@ public class Start extends JFrame {
     }
 
     // 로그인 시 이름 가져오는 함수 (디비 접속)
-    public String getName(String id) {
+    public void getName(String id) {
         // DB 연결 시도
         try {
             Class.forName("com.mysql.jdbc.Driver"); // 1. 드라이버 로딩
@@ -269,11 +302,10 @@ public class Start extends JFrame {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return getname;
     }
 
     // 로그인 시 별명 가져오는 함수 (디비 접속)
-    public String getAlias(String id) {
+    public void getAlias(String id) {
         // DB 연결 시도
         try {
             Class.forName("com.mysql.jdbc.Driver"); // 1. 드라이버 로딩
@@ -293,7 +325,6 @@ public class Start extends JFrame {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return getalias;
     }
 }
 

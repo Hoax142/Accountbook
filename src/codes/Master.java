@@ -31,70 +31,50 @@ public class Master extends JFrame {
     /* 이미지 */
     private BufferedImage colorBackground = null;
 
-    /* 프로필 */
-    private final JPanel profilePanel = new JPanel(); // 프로필을 위한 패널
-    private final JLabel showProfileLbl = new JLabel(Start.getname + "(" + Start.getalias + ")님의 계정"); // 프로필
-    private final JButton logoutBtn = new JButton("로그아웃"); // 로그아웃 버튼
-
     /* 달력 */
     private static final int CAL_WIDTH = 7; // 캘린더의 너비
     private static final int CAL_HEIGHT = 6; // 캘린더의 높이
-    private int calDates[][] = new int[CAL_HEIGHT][CAL_WIDTH]; // 캘린더를 담을 배열
+    private final int[][] calDates = new int[CAL_HEIGHT][CAL_WIDTH]; // 캘린더를 담을 배열
     private int calYear; // 년을 담을 변수
     private int calMonth; // 월을 담을 변수
     private int calDayOfMon; // 일을 담을 변수
-    private final int calLastDateofMonth[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}; // 1월 ~ 12월 일의 수를 담은 배열
-    private int calLastDate; // 월의 마지막 날을 담을 변수
-    private Calendar today = Calendar.getInstance(); // 추상 클래스 Calendar의 날짜 값을 가져오기 위한 메소드
+    private final int[] calLastDateofMonth = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}; // 1월 ~ 12월 일의 수를 담은 배열
+    private final Calendar today = Calendar.getInstance(); // 추상 클래스 Calendar의 날짜 값을 가져오기 위한 메소드
     private Calendar cal; // 캘린더 지정하기 위한 변수
-    private JPanel calTopPanel; // 캘린더의 윗 부분 패널
     private JButton todayBtn; // 오늘 날짜로 이동할 버튼
-    private JLabel todayLbl; // 오늘 날짜를 표시할 레이블
     private JButton lastYearBtn; // 저번 년도로 이동 버튼
     private JButton lastMonthBtn; // 저번 달로 이동 버튼
     private JLabel currMMYYYYLbl; // 표시 되고 있는 년/월 표시
     private JButton nextMonBtn; // 다음 년도로 이동 버튼
     private JButton nextYearBtn; // 다음 달로 이동 버튼
     ListenForCalOpButtons lForCalOpButtons = new ListenForCalOpButtons(); // 달력의 날짜를 입력 했을 때 액션 함수
-    private JPanel calPanel; // 달력 부분 패널
-    private JButton weekDaysName[]; // 요일을 버튼화 할 버튼의 배열
-    private JButton dateBtns[][] = new JButton[6][7]; // 날짜를 담을 배열 (6 x 7)
+    private final JButton[][] dateBtns = new JButton[6][7]; // 날짜를 담을 배열 (6 x 7)
     listenforDateBtns lforDateBtns = new listenforDateBtns(); // 날짜 이동 버튼을 입력 했을 때 액션 함수
-    private final String WEEK_DAY_NAME[] = {"SUN", "MON", "TUE", "WED", "THR", "FRI", "SAT"}; // 요일 이름 담은 배열
+    private final String[] WEEK_DAY_NAME = {"SUN", "MON", "TUE", "WED", "THR", "FRI", "SAT"}; // 요일 이름 담은 배열
     static String getDate; // 날짜를 표시 하기 위한 레이블
     private String getEndDate;
     private String getFirstDate;
 
     /* 탭 패널 */
-    private JTabbedPane jTabbedPane1; // 탭 패널
     private JPanel jTabbedPane1_daily; // 수입과 지출을 보여줄 탭 패널
     private JPanel jTabbedPane1_report_circle; // 원형 그래프로 보여줄 탭 패널
     private JPanel jTabbedPane1_report_stick; // 막대 그래프로 보여줄 탭 패널
 
     /* 수입 & 지출 & 합계 */
-    private JPanel dailyPanel; // 수입과 지출 탭에서 추가, 삭제, 날짜를 위한 패널
-    private JButton addBtn = new JButton("추가"); // 수입 혹은 지출을 추가할 버튼
-    private JButton delBtn = new JButton("삭제"); // 수입 혹은 지출을 삭제할 버튼
+    private final JButton addBtn = new JButton("추가"); // 수입 혹은 지출을 추가할 버튼
+    private final JButton delBtn = new JButton("삭제"); // 수입 혹은 지출을 삭제할 버튼
     static JLabel getDailyDateLbl = new JLabel(); // 수입과 지출 패널에서 선택한 날짜를 보여줄 레이블
-    private JPanel incomePanel; // 수입을 위한 패널
-    private JPanel incomeLblPanel; // 수입 단어를 담을 패널
-    private JScrollPane incomePane; // 수입 테이블을 위한 스크롤 패널
-    private Object[][] rowData = new Object[0][4]; // 테이블을 위한 배열
-    private String[] columnTitle = {"시간", "항목 이름", "결제 수단", "항목", "금액"}; // 테이블 칼럼의 제목
+    private final Object[][] rowData = new Object[0][4]; // 테이블을 위한 배열
+    private final String[] columnTitle = {"시간", "항목 이름", "결제 수단", "항목", "금액"}; // 테이블 칼럼의 제목
     static Vector incomeTable_Model_Vector; // 수입 테이블을 위한 벡터
     static DefaultTableModel incomeTable_Model; // 수입 테이블을 위한 DefaultTableModel (추가 및 삭제를 위해)
     static JTable incomeTable; // 수입 테이블
-    private JPanel expensePanel; // 지출을 위한 패널
-    private JPanel expenseLblPanel; // 지출 단어를 위한 패널
-    private JScrollPane expensePane; // 지출 테이블을 위한 스크롤 패널
     static Vector expenseTable_Model_Vector; // 지출 테이블을 위한 벡터
     static DefaultTableModel expenseTable_Model; // 지출 테이블을 위한 DefaultTableModel (추가 및 삭제를 위해)
     static JTable expenseTable; // 지출 테이블
-    private JPanel sumPanel; // 합계를 위한 패널
-    private JPanel sumLblPanel; // 합계 단어를 위한 패널
-    private JLabel incomeLbl = new JLabel("수입 :"); // 수입 합계를 위한 레이블
-    private JLabel expenseLbl = new JLabel("지출 :"); // 지출 합계를 위한 레이블
-    private JLabel totalLbl = new JLabel("전체 :"); // 전체 합계를 위한 레이블
+    private final JLabel incomeLbl = new JLabel("수입 :"); // 수입 합계를 위한 레이블
+    private final JLabel expenseLbl = new JLabel("지출 :"); // 지출 합계를 위한 레이블
+    private final JLabel totalLbl = new JLabel("전체 :"); // 전체 합계를 위한 레이블
     static JLabel incomeSum = new JLabel("0"); // 수입 합계를 보여 주는 레이블, 0 으로 초기화
     static JLabel expenseSum = new JLabel("0"); // 지출 합계를 보여 주는 레이블, 0 으로 초기화
     static JLabel totalSum = new JLabel("0"); // 합계 합계를 보여 주는 레이블, 0 으로 초기화
@@ -109,10 +89,8 @@ public class Master extends JFrame {
     static int totalAmountSum = 0; // 디비에서 지출의 합을 구하기 위한 변수
 
     // 원형 그래프
-    private JPanel circlePanel; // 원형 그래프 탭에서 날짜를 위한 패널
-    private JPanel circleGraphPanel; // 원형 그래프를 위한 패널
-    private JButton refreshCircle = new JButton("새로고침");
-    private JLabel getCircleDateLbl = new JLabel(); // 원형 그래프 패널에서 선택한 날짜를 보여줄 레이블
+    private final JButton refreshCircle = new JButton("새로고침");
+    private final JLabel getCircleDateLbl = new JLabel(); // 원형 그래프 패널에서 선택한 날짜를 보여줄 레이블
     int arc1, arc2, arc3, arc4;
     String stringTransportSum, stringPhoneSum, stringFoodSum, stringPersonalSum;
     int monthlyExpenseTotal = 0, intTransportSum = 0, totalTransportSum = 0, intPhoneSum = 0, totalPhoneSum = 0, intFoodSum = 0, totalFoodSum = 0, intPersonalSum = 0, totalPersonalSum = 0;
@@ -120,20 +98,17 @@ public class Master extends JFrame {
     DrawCircle drawCircle = new DrawCircle();
 
     // 막대 그래프
-    private JPanel stickPanel; // 막대 그래프 탭에서 날짜를 위한 패널
-    private JButton refreshStick = new JButton("새로고침");
-    private JLabel getStickDateLbl = new JLabel(); // 막대 그래프 패널에서 선택한 날짜를 보여줄 레이블
+    private final JButton refreshStick = new JButton("새로고침");
+    private final JLabel getStickDateLbl = new JLabel(); // 막대 그래프 패널에서 선택한 날짜를 보여줄 레이블
     DrawStick drawStick = new DrawStick();
 
     /* 메모 패널 */
-    private JPanel memoPanel; // 메모를 위한 패널
-    private JTextArea memoArea = new JTextArea(""); // 메모를 위한 TextArea, ""로 초기화
-    private JScrollPane memoScroll = new JScrollPane(); // 메모를 적기위한 스크롤 패널
-    private JLabel getMemoDateLbl = new JLabel(); // 메모의 날짜를 표시 하기 위한 레이블
-    private JLabel memoLbl = new JLabel("메모"); // 메모 레이블
-    private JButton saveMemoBtn = new JButton("저장"); // 메모 저장을 위한 버튼 (디비와 연동)
-    private JButton delMemoBtn = new JButton("삭제"); // 메모를 삭제하기 위한 버튼 (디비와 연동)
-    private JButton editMemoBtn = new JButton("수정"); // 메모릉 수정하기 위한 버튼
+    private final JTextArea memoArea = new JTextArea(""); // 메모를 위한 TextArea, ""로 초기화
+    private final JLabel getMemoDateLbl = new JLabel(); // 메모의 날짜를 표시 하기 위한 레이블
+    private final JLabel memoLbl = new JLabel("메모"); // 메모 레이블
+    private final JButton saveMemoBtn = new JButton("저장"); // 메모 저장을 위한 버튼 (디비와 연동)
+    private final JButton delMemoBtn = new JButton("삭제"); // 메모를 삭제하기 위한 버튼 (디비와 연동)
+    private final JButton editMemoBtn = new JButton("수정"); // 메모릉 수정하기 위한 버튼
     private String memoContents = ""; // 메모가 빈칸 일 때
 
     /* DB */
@@ -166,17 +141,20 @@ public class Master extends JFrame {
         panel.setBounds(0, 0, Main.BIG_SCREEN_WIDTH, Main.BIG_SCREEN_HEIGHT);
 
         // 프로필 패널
+        JPanel profilePanel = new JPanel();
         profilePanel.setBounds(0, 0, 1280, 40);
         profilePanel.setOpaque(false);
         profilePanel.setLayout(null);
         layeredPane.add(profilePanel);
 
         // 프로필 레이블
+        JLabel showProfileLbl = new JLabel(Start.getname + "(" + Start.getalias + ")님의 계정");
         showProfileLbl.setBounds(60, 15, 200, 30);
         showProfileLbl.setFont(new Font("DX빨간우체통B", Font.BOLD, 16));
         profilePanel.add(showProfileLbl);
 
         // 로그아웃 버튼
+        JButton logoutBtn = new JButton("로그아웃");
         logoutBtn.setBounds(1150, 15, 90, 30);
         logoutBtn.setFont(new Font("DX빨간우체통B", Font.PLAIN, 12));
         logoutBtn.addMouseListener(new MouseAdapter() {
@@ -228,7 +206,7 @@ public class Master extends JFrame {
 
     // 달력 만드는 함수
     public void makeCalendar() {
-        calTopPanel = new JPanel();
+        JPanel calTopPanel = new JPanel();
         calTopPanel.setOpaque(false);
 
         todayBtn = new JButton("Today");
@@ -236,7 +214,7 @@ public class Master extends JFrame {
         todayBtn.setToolTipText("오늘");
         todayBtn.addActionListener(lForCalOpButtons);
 
-        todayLbl = new JLabel(today.get(Calendar.MONTH) + 1 + "/" + today.get(Calendar.DAY_OF_MONTH) + "/" + today.get(Calendar.YEAR));
+        JLabel todayLbl = new JLabel(today.get(Calendar.MONTH) + 1 + "/" + today.get(Calendar.DAY_OF_MONTH) + "/" + today.get(Calendar.YEAR));
         todayLbl.setFont(new Font("DX빨간우체통B", Font.BOLD, 12));
 
         lastYearBtn = new JButton("<<");
@@ -296,9 +274,9 @@ public class Master extends JFrame {
         calOpGC.gridy = 2;
         calTopPanel.add(nextYearBtn, calOpGC);
 
-        calPanel = new JPanel();
+        JPanel calPanel = new JPanel();
         calPanel.setOpaque(false);
-        weekDaysName = new JButton[7];
+        JButton[] weekDaysName = new JButton[7];
         for (int i = 0; i < CAL_WIDTH; i++) {
             weekDaysName[i] = new JButton(WEEK_DAY_NAME[i]);
             weekDaysName[i].setBorderPainted(false);
@@ -353,6 +331,7 @@ public class Master extends JFrame {
     // 달력 데이터 만드는 함수
     public void makeCalData(Calendar cal) {
         int calStartingPos = (cal.get(Calendar.DAY_OF_WEEK) + 7 - (cal.get(Calendar.DAY_OF_MONTH)) % 7) % 7;
+        int calLastDate;
         if (calMonth == 1) {
             calLastDate = calLastDateofMonth[calMonth] + leapCheck(calYear);
         } else {
@@ -516,50 +495,9 @@ public class Master extends JFrame {
         }
     }
 
-    /*
-        private class ThreadConrol extends Thread{
-            public void run(){
-                boolean msgCntFlag = false;
-                int num = 0;
-                String curStr = new String();
-                while(true){
-                    try{
-                        today = Calendar.getInstance();
-                        String amPm = (today.get(Calendar.AM_PM)==0?"AM":"PM");
-                        String hour;
-                        if(today.get(Calendar.HOUR) == 0) hour = "12";
-                        else if(today.get(Calendar.HOUR) == 12) hour = " 0";
-                        else hour = (today.get(Calendar.HOUR)<10?" ":"")+today.get(Calendar.HOUR);
-                        String min = (today.get(Calendar.MINUTE)<10?"0":"")+today.get(Calendar.MINUTE);
-                        String sec = (today.get(Calendar.SECOND)<10?"0":"")+today.get(Calendar.SECOND);
-                        infoClock.setText(amPm+" "+hour+":"+min+":"+sec);
-
-                        sleep(1000);
-                        String infoStr = bottomInfo.getText();
-
-                        if(infoStr != " " && (msgCntFlag == false || curStr != infoStr)){
-                            num = 5;
-                            msgCntFlag = true;
-                            curStr = infoStr;
-                        }
-                        else if(infoStr != " " && msgCntFlag == true){
-                            if(num > 0) num--;
-                            else{
-                                msgCntFlag = false;
-                                bottomInfo.setText(" ");
-                            }
-                        }
-                    }
-                    catch(InterruptedException e){
-                        System.out.println("Thread:Error");
-                    }
-                }
-            }
-        }*/
-
     // 가계부를 위한 탭 메뉴 정의하는 함수
     public void daily() {
-        jTabbedPane1 = new JTabbedPane(JTabbedPane.BOTTOM);
+        JTabbedPane jTabbedPane1 = new JTabbedPane(JTabbedPane.BOTTOM);
 
         jTabbedPane1_daily = new JPanel();
         jTabbedPane1_daily.setLayout(null);
@@ -589,13 +527,13 @@ public class Master extends JFrame {
 
     // 날짜 표시 및 추가 버튼을 위한 함수
     public void daily_date() {
-        dailyPanel = new JPanel();
+        JPanel dailyPanel = new JPanel();
         dailyPanel.setLayout(null);
         dailyPanel.setBorder(new EtchedBorder());
         dailyPanel.setBounds(1, 0, 579, 80);
         dailyPanel.setBackground(new Color(204, 204, 255));
 
-        circlePanel = new JPanel();
+        JPanel circlePanel = new JPanel();
         circlePanel.setLayout(null);
         circlePanel.setBorder(new EtchedBorder());
         circlePanel.setBounds(1, 0, 579, 80);
@@ -606,7 +544,8 @@ public class Master extends JFrame {
         drawCircle.setBorder(new EtchedBorder());
         jTabbedPane1_report_circle.add(drawCircle);
 
-        stickPanel = new JPanel();
+        // 막대 그래프 탭에서 날짜를 위한 패널
+        JPanel stickPanel = new JPanel();
         stickPanel.setLayout(null);
         stickPanel.setBorder(new EtchedBorder());
         stickPanel.setBounds(1, 0, 579, 80);
@@ -669,8 +608,6 @@ public class Master extends JFrame {
                         }
                         String deleteTableRowFromDB = "DELETE FROM accountbook WHERE inputtime = '" + incomeTimeString + "' AND username = '" + Start.getname + "'";
                         updateDB(deleteTableRowFromDB);
-                    } else {
-                        return;
                     }
                 } else if (expenseTableSelected >= 0) {
                     Object expenseTime = expenseTable.getModel().getValueAt(expenseTableSelected, 0);
@@ -688,8 +625,6 @@ public class Master extends JFrame {
                         }
                         String deleteTableRowFromDB = "DELETE FROM accountbook WHERE inputtime = '" + expenseTimeString + "' AND username = '" + Start.getname + "'";
                         updateDB(deleteTableRowFromDB);
-                    } else {
-                        return;
                     }
                 }
 
@@ -724,14 +659,14 @@ public class Master extends JFrame {
 
     // 수입 테이블을 만드는 함수
     public void daily_income() {
-        incomePanel = new JPanel();
+        JPanel incomePanel = new JPanel();
         incomePanel.setLayout(null);
         incomePanel.setBorder(new EtchedBorder());
         incomePanel.setBackground((new Color(204, 204, 255)));
         incomePanel.setBounds(2, 80, 598, 198);
         jTabbedPane1_daily.add(incomePanel);
 
-        incomeLblPanel = new JPanel();
+        JPanel incomeLblPanel = new JPanel();
         incomeLblPanel.setLayout(null);
         incomeLblPanel.setBackground((new Color(204, 204, 255)));
         JLabel incomeLbl1 = new JLabel("수");
@@ -756,7 +691,7 @@ public class Master extends JFrame {
             }
         };
         incomeTable = new JTable(incomeTable_Model);
-        incomePane = new JScrollPane(incomeTable);
+        JScrollPane incomePane = new JScrollPane(incomeTable);
         incomePane.setBounds(27, 0, 549, 197);
         incomePanel.add(incomePane);
 
@@ -764,14 +699,14 @@ public class Master extends JFrame {
 
     // 지출 테이블을 만드는 함수
     public void daily_expense() {
-        expensePanel = new JPanel();
+        JPanel expensePanel = new JPanel();
         expensePanel.setLayout(null);
         expensePanel.setBorder(new EtchedBorder());
         expensePanel.setBackground((new Color(204, 204, 255)));
         expensePanel.setBounds(2, 279, 598, 198);
         jTabbedPane1_daily.add(expensePanel);
 
-        expenseLblPanel = new JPanel();
+        JPanel expenseLblPanel = new JPanel();
         expenseLblPanel.setLayout(null);
         expenseLblPanel.setBackground((new Color(204, 204, 255)));
         JLabel expenseLbl1 = new JLabel("지");
@@ -796,21 +731,21 @@ public class Master extends JFrame {
             }
         };
         expenseTable = new JTable(expenseTable_Model);
-        expensePane = new JScrollPane(expenseTable);
+        JScrollPane expensePane = new JScrollPane(expenseTable);
         expensePane.setBounds(27, 0, 549, 197);
         expensePanel.add(expensePane);
     }
 
     // 수입의 합, 지출의 합, 전체 합을 위한 함수
     public void daily_total() {
-        sumPanel = new JPanel();
+        JPanel sumPanel = new JPanel();
         sumPanel.setLayout(null);
         sumPanel.setBorder(new EtchedBorder());
         sumPanel.setBackground((new Color(204, 204, 255)));
         sumPanel.setBounds(2, 478, 598, 100);
         jTabbedPane1_daily.add(sumPanel);
 
-        sumLblPanel = new JPanel();
+        JPanel sumLblPanel = new JPanel();
         sumLblPanel.setLayout(null);
         sumLblPanel.setBackground((new Color(204, 204, 255)));
         JLabel sumLbl1 = new JLabel("합");
@@ -856,7 +791,7 @@ public class Master extends JFrame {
 
     // 메모를 위한 함수
     public void daily_memo() {
-        memoPanel = new JPanel();
+        JPanel memoPanel = new JPanel();
         memoPanel.setLayout(null);
         memoPanel.setBorder(new EtchedBorder());
         memoPanel.setBounds(50, 460, 550, 160);
@@ -867,7 +802,7 @@ public class Master extends JFrame {
         memoArea.setWrapStyleWord(true);
         memoArea.setEditable(false);
         memoArea.setBackground(new Color(230, 230, 230));
-        memoScroll = new JScrollPane(memoArea, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        JScrollPane memoScroll = new JScrollPane(memoArea, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         memoScroll.setBounds(10, 40, 530, 110);
         memoPanel.add(memoScroll);
 
@@ -890,7 +825,7 @@ public class Master extends JFrame {
                 // 저장 이벤트
                 if (checkMemo(Start.getname, getDate).equals("")) {
                     if (memoArea.getText().equals("")) {
-
+                        return;
                     } else {
                         String addMemoToDB = "INSERT INTO memos(username,inputdate,content)" +
                                 "VALUES('" + Start.getname + "','" + getDate + "','" + memoArea.getText() + "')";
@@ -970,13 +905,13 @@ public class Master extends JFrame {
 
             g.setFont(new Font("DX빨간우체통B", Font.BOLD, 15));
             g.setColor(new Color(255, 101, 30));
-            g.drawString("교통비 : "+Integer.toString(arc1Percentage) + "%", 80, 450);
+            g.drawString("교통비 : " + Integer.toString(arc1Percentage) + "%", 80, 450);
             g.setColor(new Color(66, 164, 82));
-            g.drawString("통신비 : "+Integer.toString(arc2Percentage) + "%", 190, 450);
+            g.drawString("통신비 : " + Integer.toString(arc2Percentage) + "%", 190, 450);
             g.setColor(new Color(24, 95, 255));
-            g.drawString("식  비 : "+Integer.toString(arc3Percentage) + "%", 310, 450);
+            g.drawString("식  비 : " + Integer.toString(arc3Percentage) + "%", 310, 450);
             g.setColor(new Color(187, 6, 255));
-            g.drawString("개  인 : "+Integer.toString(arc4Percentage) + "%", 420, 450);
+            g.drawString("개  인 : " + Integer.toString(arc4Percentage) + "%", 420, 450);
         }
     }
 
@@ -1000,23 +935,23 @@ public class Master extends JFrame {
             g.drawLine(100, 100, 100, 350); // 세로
 
             g.setColor(new Color(255, 101, 30));
-            g.fillRect(130,350-arc1Percentage*5/2,50,arc1Percentage*5/2);
+            g.fillRect(130, 350 - arc1Percentage * 5 / 2, 50, arc1Percentage * 5 / 2);
             g.setColor(new Color(66, 164, 82));
-            g.fillRect(230,350-arc2Percentage*5/2,50,arc2Percentage*5/2);
+            g.fillRect(230, 350 - arc2Percentage * 5 / 2, 50, arc2Percentage * 5 / 2);
             g.setColor(new Color(24, 95, 255));
-            g.fillRect(330,350-arc3Percentage*5/2,50,arc3Percentage*5/2);
+            g.fillRect(330, 350 - arc3Percentage * 5 / 2, 50, arc3Percentage * 5 / 2);
             g.setColor(new Color(187, 6, 255));
-            g.fillRect(430,350-arc4Percentage*5/2,50,arc4Percentage*5/2);
+            g.fillRect(430, 350 - arc4Percentage * 5 / 2, 50, arc4Percentage * 5 / 2);
 
             g.setFont(new Font("DX빨간우체통B", Font.BOLD, 15));
             g.setColor(new Color(255, 101, 30));
-            g.drawString("교통비",135,370);
+            g.drawString("교통비", 135, 370);
             g.setColor(new Color(66, 164, 82));
-            g.drawString("통신비",235,370);
+            g.drawString("통신비", 235, 370);
             g.setColor(new Color(24, 95, 255));
-            g.drawString("식  비",335,370);
+            g.drawString("식  비", 335, 370);
             g.setColor(new Color(187, 6, 255));
-            g.drawString("개  인",435,370);
+            g.drawString("개  인", 435, 370);
         }
     }
 

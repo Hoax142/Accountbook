@@ -37,39 +37,23 @@ public class Login extends JFrame {
     private BufferedImage colorBackground = null;
 
     /* 이름 */
-    private JLabel nameLbl = new JLabel("이름"); // 이름
-    private JTextField nameTxt = new JTextField(null); // 이름 입력 필드
+    private final JTextField nameTxt = new JTextField(null); // 이름 입력 필드
 
     /* 아이디 */
-    private JLabel idLbl = new JLabel("아이디"); // 아이디
-    private JLabel id15 = new JLabel("15자 이내로 입력해주세요"); // 아이디 주의사항
-    private JTextField idTxt = new JTextField(); // 아이디 입력 필드
-    private JButton checkIdBtn = new JButton("중복확인"); // 아이디 중복 확인 버튼
+    private final JTextField idTxt = new JTextField(); // 아이디 입력 필드
 
     /* 비밀번호 */
-    private JLabel passLbl = new JLabel("비밀번호"); // 비밀번호
-    private JLabel passLbl_Check = new JLabel("비밀번호 확인"); // 비밀번호 확인
-    private JLabel password15 = new JLabel("15자 이내로 입력해주세요"); // 비밀번호 주의사항
-    private JLabel password_check = new JLabel(""); // 비밀번호 일치 확인
-    private JPasswordField passTxt = new JPasswordField(); // 비밀번호 입력 필드
-    private JPasswordField passTxt_Check = new JPasswordField(); // 비밀번호 재입력 입력 필드
-    private JButton checkPassBtn = new JButton("일치확인"); // 비밀번호 일치 확인 버튼
+    private final JLabel password_check = new JLabel(""); // 비밀번호 일치 확인
+    private final JPasswordField passTxt = new JPasswordField(); // 비밀번호 입력 필드
+    private final JPasswordField passTxt_Check = new JPasswordField(); // 비밀번호 재입력 입력 필드
 
     /* 별명 */
-    private JLabel nicknameLbl = new JLabel("별명"); // 별명
-    private JLabel nickname15 = new JLabel("15자 이내로 입력해주세요"); // 별명 주의사항
-    private JTextField nicknameTxt = new JTextField(); // 별명 입력 필드
+    private final JTextField nicknameTxt = new JTextField(); // 별명 입력 필드
 
     /* 생년월일 */
-    private JLabel birthdateLbl = new JLabel("생년월일"); // 생년월일
-    private JLabel dateLbl = new JLabel("ex) 1994 06 06"); // 생년월일 입력 예시
-    private JTextField yearTxt = new JTextField(); // 태어난 년도 입력 필드
-    private JTextField monthTxt = new JTextField(); // 태어난 월 입력 필드
-    private JTextField dayTxt = new JTextField(); // 태어난 일 입력 필드
-
-    /* 가입, 취소 버튼 */
-    private JButton signupBtn = new JButton("가입"); // 가입 버튼
-    private JButton exitBtn = new JButton("취소"); // 취소 버튼
+    private final JTextField yearTxt = new JTextField(); // 태어난 년도 입력 필드
+    private final JTextField monthTxt = new JTextField(); // 태어난 월 입력 필드
+    private final JTextField dayTxt = new JTextField(); // 태어난 일 입력 필드
 
     /* 변수 */
     private int idCount = 0; // 가입할 때 아이디 중복 체크 했는지 확인 하기 위한 변수
@@ -77,8 +61,6 @@ public class Login extends JFrame {
 
     /* DB */
     private Connection con = null;
-    private PreparedStatement ps = null;
-    private ResultSet rs = null;
     private Statement stmt = null;
 
     // 생성자
@@ -105,6 +87,7 @@ public class Login extends JFrame {
         panel.setBounds(0, 0, Main.SMALL_SCREEN_WIDTH, Main.SMALL_SCREEN_HEIGHT);
 
         // 이름 레이블
+        JLabel nameLbl = new JLabel("이름");
         nameLbl.setBounds(FIRST_X, 50, 80, 30);
         nameLbl.setFont(new Font("DX빨간우체통B", Font.BOLD, 15));
         layeredPane.add(nameLbl);
@@ -117,11 +100,13 @@ public class Login extends JFrame {
 
 
         // 아이디 레이블
+        JLabel idLbl = new JLabel("아이디");
         idLbl.setBounds(FIRST_X, 120, 80, 30);
         idLbl.setFont(new Font("DX빨간우체통B", Font.BOLD, 15));
         layeredPane.add(idLbl);
 
         // 아이디 15자 안내 레이블
+        JLabel id15 = new JLabel("15자 이내로 입력해주세요");
         id15.setBounds(SECOND_X, 150, 150, 30);
         id15.setFont(new Font("DX빨간우체통B", Font.ITALIC, 13));
         id15.setForeground(Color.DARK_GRAY);
@@ -145,6 +130,7 @@ public class Login extends JFrame {
         layeredPane.add(idTxt);
 
         // 아이디 중복 확인 버튼
+        JButton checkIdBtn = new JButton("중복확인");
         checkIdBtn.setBounds(310, 117, 70, 35);
         checkIdBtn.addMouseListener(new MouseAdapter() {
             @Override
@@ -174,11 +160,13 @@ public class Login extends JFrame {
         layeredPane.add(checkIdBtn);
 
         // 비밀번호 레이블
+        JLabel passLbl = new JLabel("비밀번호");
         passLbl.setBounds(FIRST_X, 190, 80, 30);
         passLbl.setFont(new Font("DX빨간우체통B", Font.BOLD, 15));
         layeredPane.add(passLbl);
 
         // 비밀번호 15자 이내 레이블
+        JLabel password15 = new JLabel("15자 이내로 입력해주세요");
         password15.setBounds(SECOND_X, 220, 150, 30);
         password15.setFont(new Font("DX빨간우체통B", Font.ITALIC, 13));
         password15.setForeground(Color.DARK_GRAY);
@@ -205,6 +193,7 @@ public class Login extends JFrame {
         layeredPane.add(passTxt);
 
         // 비밀번호 재확인 레이블
+        JLabel passLbl_Check = new JLabel("비밀번호 확인");
         passLbl_Check.setBounds(FIRST_X, 260, 100, 30);
         passLbl_Check.setFont(new Font("DX빨간우체통B", Font.BOLD, 15));
         layeredPane.add(passLbl_Check);
@@ -221,6 +210,7 @@ public class Login extends JFrame {
         layeredPane.add(password_check);
 
         // 비밀번호 확인 버튼
+        JButton checkPassBtn = new JButton("일치확인");
         checkPassBtn.setBounds(310, 257, 70, 35);
         checkPassBtn.addMouseListener(new MouseAdapter() {
             @Override
@@ -240,6 +230,7 @@ public class Login extends JFrame {
 
 
         // 생일 레이블
+        JLabel birthdateLbl = new JLabel("생년월일");
         birthdateLbl.setBounds(FIRST_X, 330, 80, 30);
         birthdateLbl.setFont(new Font("DX빨간우체통B", Font.BOLD, 15));
         layeredPane.add(birthdateLbl);
@@ -311,17 +302,20 @@ public class Login extends JFrame {
         layeredPane.add(dayTxt);
 
         // 생일 입력 예시 레이블
+        JLabel dateLbl = new JLabel("ex) 1994 06 06");
         dateLbl.setBounds(290, 330, 100, 30);
         dateLbl.setFont(new Font("DX빨간우체통B", Font.PLAIN, 13));
         dateLbl.setForeground(Color.DARK_GRAY);
         layeredPane.add(dateLbl);
 
         // 별명 레이블
+        JLabel nicknameLbl = new JLabel("별명");
         nicknameLbl.setBounds(FIRST_X, 400, 80, 30);
         nicknameLbl.setFont(new Font("DX빨간우체통B", Font.BOLD, 15));
         layeredPane.add(nicknameLbl);
 
         // 별명 15자 이내 레이블
+        JLabel nickname15 = new JLabel("15자 이내로 입력해주세요");
         nickname15.setBounds(SECOND_X, 430, 150, 30);
         nickname15.setFont(new Font("DX빨간우체통B", Font.ITALIC, 13));
         nickname15.setForeground(Color.DARK_GRAY);
@@ -346,6 +340,7 @@ public class Login extends JFrame {
 
 
         // 가입 버튼
+        JButton signupBtn = new JButton("가입");
         signupBtn.setBounds(80, 500, 70, 35);
         signupBtn.addMouseListener(new MouseAdapter() {
             @Override
@@ -385,6 +380,7 @@ public class Login extends JFrame {
         layeredPane.add(signupBtn);
 
         // 취소 버튼
+        JButton exitBtn = new JButton("취소");
         exitBtn.setBounds(250, 500, 70, 35);
         exitBtn.addMouseListener(new MouseAdapter() {
             @Override
@@ -417,9 +413,9 @@ public class Login extends JFrame {
         }
         String SQL = "SELECT id FROM members where id = ?";
         try {
-            ps = con.prepareStatement(SQL);
+            PreparedStatement ps = con.prepareStatement(SQL);
             ps.setString(1, id);
-            rs = ps.executeQuery();
+            ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
                 if (rs.getString(1).equals(id)) {
